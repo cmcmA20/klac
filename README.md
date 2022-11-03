@@ -3,7 +3,7 @@ KL Agda course
 
 ## how to get it
 ```sh
-git --recursive clone https://github.com/cmcmA20/klac
+git clone --recursive https://github.com/cmcmA20/klac
 ```
 
 ## if you already cloned it
