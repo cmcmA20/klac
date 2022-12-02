@@ -72,6 +72,10 @@ data ℕ : Type₀ where
 
 
 ──────────────
+   ℕ : Type₀
+
+
+──────────────
   zero : ℕ
   
 #+end_src
@@ -162,6 +166,11 @@ infixr 4 _∷_
 Списки в виде секвенций:
 #+begin_src seq
 
+     A : Type₀
+──────────────────
+   List A : Type₀
+
+
    A : Type₀
 ───────────────
    [] : List A
@@ -224,12 +233,41 @@ tailᵥ = {!!}
 
 #+end_src
 
+Как выглядят векторы и конечные типы на секвентах:
+#+begin_src seq
+
+  A : Type₀    n : ℕ
+──────────────────────
+   Vec A n : Type₀
+
+
+     A : Type₀
+──────────────────
+    [] : Vec A 0
+
+
+  A : Type₀      n : ℕ      v : A      vs : Vec A n
+──────────────────────────────────────────────────────
+                  v ∷ vs : Vec A (suc n)
+
+
+        n : ℕ
+────────────────────────
+    fzero : Fin (suc n)
+
+
+  n : ℕ      k : Fin n
+────────────────────────
+    fsuc k : Fin (suc n)
+
+#+end_src
+
 Научимся корректно доставать элементы по индексу из векторов, для этого сначала создадим нужный тип для индексов:
 #+begin_src agda2
 
 data Fin : ℕ → Type₀ where
-  zero : {n : ℕ}         → Fin (suc n)
-  suc  : {n : ℕ} → Fin n → Fin (suc n)
+  fzero : {n : ℕ}         → Fin (suc n)
+  fsuc  : {n : ℕ} → Fin n → Fin (suc n)
 
 finEx₁ : Fin 2
 finEx₁ = {!!}
@@ -275,9 +313,10 @@ trans = {!!}
 
 * Соответствие Карри-Говарда-Ламбека
 Формально связь между теорией типов, матлогикой и теорией категорий была установлена вышеназванными чуваками.
-Проще всего взглянуть на [[[[./curry-howard.png]\]] и [[https://ncatlab.org/nlab/show/computational+trilogy][табличку]].
+Проще всего взглянуть на [[https://ncatlab.org/nlab/show/computational+trilogy][табличку]].
 [[./curry-howard.png]]
 
+Также можно почитать про [[https://ncatlab.org/nlab/show/Brouwer-Heyting-Kolmogorov+interpretation][интерпретацию Броуэра-Гейтинга-Колмогорова]] для интуиционистской логики.
 
 Давайте посмотрим на ложь, истину, "и", "или", "не", импликацию, кванторы "для всех" и "существует"
 #+begin_src agda2
@@ -309,6 +348,6 @@ _⇒_ : Type₀ → Type₀ → Type₀
 _⇒_ = {!!}
 
 _⇔_ : Type₀ → Type₀ → Type₀
-P ⇔ Q = (P → Q) ∧ (Q → P)
+P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
 
 #+end_src
