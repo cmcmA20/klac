@@ -3,7 +3,7 @@
 В самом начале файла идут прагмы для интерпретатора, на них пока можно не обращать внимания
 #+begin_src agda2
 
-{-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --safe #-}
 
 #+end_src
 
@@ -122,7 +122,7 @@ infixr 5 _+_ -- инфиксный правоассоциативный опер
 
 Самое частое, что нам понадобится:
 ~C-c C-l~ загрузить и проверить текущий файл
-~C-c C-~, показать текущий контекст и цель
+~C-c C-,~ показать текущий контекст и цель
 ~C-c C-c~ разобрать переменную на случаи (case analysis)
 ~C-c C-r~ уточнить результат (подбирает подходящий конструктор, если это можно сделать единственным способом)
 
@@ -134,22 +134,27 @@ infixr 5 _+_ -- инфиксный правоассоциативный опер
 #+begin_src agda2
 
 _*_ : ℕ → ℕ → ℕ
-_*_ = {!!}
+zero  * _ = zero
+suc x * y = y + x * y
 infixr 6 _*_
 
 not : 𝔹 → 𝔹
-not = {!!}
+not false = true
+not true  = false
 
 _&&_ : (x : 𝔹) → (y : 𝔹) → 𝔹
-_&&_ = {!!}
+false && _ = false
+true  && y = y
 infixr 5 _&&_
 
 _||_ : (x : 𝔹) (y : 𝔹) → 𝔹
-_||_ = {!!}
+false || y = y
+true  || _ = true
 infixr 4 _||_
 
 if_then_else_ : {A : Type₀} → (condition : 𝔹) → A → A → A
-if_then_else_ = {!!}
+if false then _ else y = y
+if true  then x else _ = x
 
 #+end_src
 
@@ -190,20 +195,24 @@ infixr 4 _∷_
 #+begin_src agda2
 
 length : {A : Type₀} → List A → ℕ
-length = {!!}
+length []       = 0
+length (_ ∷ xs) = suc (length xs)
 
-_++_ : {A : Type₀} → List A → List A → List A
-_++_ = {!!}
+_++_ : {A : Type₀} → (xs ys : List A) → List A
+[]       ++ ys = ys
+(x ∷ xs) ++ ys = x ∷ xs ++ ys
 infixr 7 _++_
 
-headₗ : {A : Type₀} → List A → A
-headₗ = {!!}
+-- headₗ : {A : Type₀} → List A → A
+-- headₗ [] = {!!} -- такая функция невозможна
+-- headₗ (x ∷ _) = x
 
 tailₗ : {A : Type₀} → List A → List A
-tailₗ = {!!}
+tailₗ []       = []
+tailₗ (_ ∷ xs) = xs
 
-lookupₗ : {A : Type₀} → (index : ℕ) → List A → A
-lookupₗ = {!!}
+-- lookupₗ : {A : Type₀} → (index : ℕ) → List A → A
+-- lookupₗ index xs = {!!} -- такая тоже
 
 #+end_src
 
@@ -226,10 +235,10 @@ data Vec (A : Type₀) : ℕ → Type₀ where
   _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
 
 headᵥ : {A : Type₀} {n : ℕ} → Vec A (suc n) → A
-headᵥ = {!!}
+headᵥ (x ∷ _) = x
 
 tailᵥ : {A : Type₀} {n : ℕ} → Vec A (suc n) → Vec A n
-tailᵥ = {!!}
+tailᵥ (_ ∷ xs) = xs
 
 #+end_src
 
@@ -270,13 +279,14 @@ data Fin : ℕ → Type₀ where
   fsuc  : {n : ℕ} → Fin n → Fin (suc n)
 
 finEx₁ : Fin 2
-finEx₁ = {!!}
+finEx₁ = fzero
 
 finEx₂ : Fin 2
-finEx₂ = {!!}
+finEx₂ = fsuc fzero
 
 lookupᵥ : {A : Type₀} {n : ℕ} → (index : Fin n) → Vec A n → A
-lookupᵥ = {!!}
+lookupᵥ fzero        (x ∷ _)  = x
+lookupᵥ (fsuc index) (_ ∷ xs) = lookupᵥ index xs
 
 #+end_src
 
@@ -287,12 +297,13 @@ lookupᵥ = {!!}
 Конструктор единственный, который для любого элемента ~x : A~ утверждает, что ~x~ равен самому себе.
 #+begin_src agda2
 
+-- \==
 data _≡_ {A : Type₀} : A → A → Type₀ where
   refl : (x : A) → x ≡ x
 infix 0 _≡_
 
 _ : 6 + (7 * 5) ≡ 41
-_ = {!!}
+_ = refl 41
 
 #+end_src
 
@@ -301,13 +312,13 @@ _ = {!!}
 #+begin_src agda2
 
 cong : {A B : Type₀} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-cong = {!!}
+cong f (refl _) = refl (f _)
 
 sym : {A : Type₀} {x y : A} → x ≡ y → y ≡ x
-sym = {!!}
+sym (refl _) = refl _
 
 trans : {A : Type₀} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-trans = {!!}
+trans p (refl _) = p
 
 #+end_src
 
@@ -324,7 +335,7 @@ trans = {!!}
 data ⊥ : Type₀ where
 
 ex-falso-quodlibet : {A : Type₀} → ⊥ → A
-ex-falso-quodlibet = {!!}
+ex-falso-quodlibet ()
 
 record ⊤ : Type₀ where
   constructor tt
@@ -345,7 +356,7 @@ infixr 5 _∨_
 ¬ A = A → ⊥
 
 _⇒_ : Type₀ → Type₀ → Type₀
-_⇒_ = {!!}
+P ⇒ Q = P → Q
 
 _⇔_ : Type₀ → Type₀ → Type₀
 P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
