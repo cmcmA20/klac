@@ -358,6 +358,7 @@ infixr 5 _∨_
 
 _⇒_ : Type₀ → Type₀ → Type₀
 P ⇒ Q = P → Q
+infixr 3 _⇒_
 
 _⇔_ : Type₀ → Type₀ → Type₀
 P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
