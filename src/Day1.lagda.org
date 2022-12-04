@@ -298,9 +298,10 @@ lookupᵥ (fsuc index) (_ ∷ xs) = lookupᵥ index xs
 #+begin_src agda2
 
 -- \==
-data _≡_ {A : Type₀} : A → A → Type₀ where
+data _≡_ {ℓ} {A : Type ℓ} : A → A → Type ℓ where
   refl : (x : A) → x ≡ x
 infix 0 _≡_
+{-# BUILTIN EQUALITY _≡_ #-}
 
 _ : 6 + (7 * 5) ≡ 41
 _ = refl 41
