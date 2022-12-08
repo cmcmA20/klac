@@ -1,40 +1,41 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --no-load-primitives #-}
 module Prelude where
-
-open import Agda.Primitive
-  using (Level) renaming (lzero to 0ℓ; lsuc to suc-ℓ)
-  public
 
 module Universes where
 
-  Type : (ℓ : Level) → Set (suc-ℓ ℓ)
-  Type ℓ = Set ℓ
-  {-# DISPLAY Set ℓ = Type ℓ #-}
+  infixl 6 _⊔_
 
-  𝓤 : (ℓ : Level) → Type (suc-ℓ ℓ)
-  𝓤 = Type
+  {-# BUILTIN TYPE Type #-}
+  {-# BUILTIN PROP Prop #-}
+  {-# BUILTIN SETOMEGA Typeω #-}
+  {-# BUILTIN STRICTSET      SSet  #-}
+  {-# BUILTIN STRICTSETOMEGA SSetω #-}
 
-  Type₀ : Type (suc-ℓ 0ℓ)
-  Type₀ = Type 0ℓ
-  {-# DISPLAY Set = Type₀ #-}
-  𝓤₀ : Type (suc-ℓ 0ℓ)
-  𝓤₀ = Type₀
+  postulate
+    Level : Type
 
-  Type₁ : Type (suc-ℓ (suc-ℓ 0ℓ))
-  Type₁ = Type (suc-ℓ 0ℓ)
-  𝓤₁ : Type (suc-ℓ (suc-ℓ 0ℓ))
+  {-# BUILTIN LEVEL Level #-}
+
+  postulate
+    0ℓ    : Level
+    suc-ℓ : (ℓ : Level) → Level
+    _⊔_   : (ℓ₁ ℓ₂ : Level) → Level
+
+  {-# BUILTIN LEVELZERO 0ℓ #-}
+  {-# BUILTIN LEVELSUC  suc-ℓ  #-}
+  {-# BUILTIN LEVELMAX  _⊔_   #-}
+
+  𝓤₀ = Type
+
   𝓤₁ = Type (suc-ℓ 0ℓ)
 
-  Type₂ : Type (suc-ℓ (suc-ℓ (suc-ℓ 0ℓ)))
-  Type₂ = Type (suc-ℓ (suc-ℓ 0ℓ))
-  𝓤₂ : Type (suc-ℓ (suc-ℓ (suc-ℓ 0ℓ)))
   𝓤₂ = Type (suc-ℓ (suc-ℓ 0ℓ))
 
 open Universes public
 
 module Typeformers where
 
-  record Σ (A : Type₀) (B : A → Type₀) : Type₀ where
+  record Σ (A : Type) (B : A → Type) : Type where
     constructor _,_
     field
       fst : A
@@ -48,10 +49,10 @@ module Typeformers where
 
   infix -1 Σ
 
-  _×_ : Type₀ → Type₀ → Type₀
+  _×_ : Type → Type → Type
   A × B = Σ x ꞉ A , B
 
-  Pi : (A : Type₀) (B : A → Type₀) → Type₀
+  Pi : (A : Type) (B : A → Type) → Type
   Pi A B = (x : A) → B x
 
   syntax Pi A (λ x → b) = Π x ꞉ A , b

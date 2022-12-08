@@ -1,5 +1,6 @@
 #+begin_src agda2
 
+{-# OPTIONS --no-load-primitives #-}
 module homework.Day1 where
 
 open import Prelude

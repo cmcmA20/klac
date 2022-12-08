@@ -3,7 +3,7 @@
 В самом начале файла идут прагмы для интерпретатора, на них пока можно не обращать внимания
 #+begin_src agda2
 
-{-# OPTIONS --safe #-}
+{-# OPTIONS --no-load-primitives #-}
 
 #+end_src
 
@@ -58,7 +58,7 @@ data 𝔹 : Type₀ where
 
 -- \bN
 -- \->
-data ℕ : Type₀ where
+data ℕ : Type where
   zero :     ℕ
   suc  : ℕ → ℕ
 {-# BUILTIN NATURAL ℕ #-} -- чтобы можно было использовать литералы 0, 1 etc
