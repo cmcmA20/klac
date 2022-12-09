@@ -298,10 +298,10 @@ lookupᵥ (fsuc index) (_ ∷ xs) = lookupᵥ index xs
 #+begin_src agda2
 
 -- \==
-data _≡_ {ℓ} {A : Type ℓ} : A → A → Type ℓ where
-  refl : (x : A) → x ≡ x
-infix 0 _≡_
-{-# BUILTIN EQUALITY _≡_ #-}
+-- data _≡_ {ℓ} {A : Type ℓ} : A → A → Type ℓ where
+--   refl : (x : A) → x ≡ x
+-- infix 0 _≡_
+-- {-# BUILTIN EQUALITY _≡_ #-}
 
 _ : 6 + (7 * 5) ≡ 41
 _ = refl 41
@@ -312,14 +312,14 @@ _ = refl 41
 Равенство является отношением эквивалентности, т.е. оно рефлексивно, симметрично и транзитивно.
 #+begin_src agda2
 
-cong : {A B : Type₀} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-cong f (refl _) = refl (f _)
+-- cong : {A B : Type₀} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+-- cong f (refl _) = refl (f _)
 
-sym : {A : Type₀} {x y : A} → x ≡ y → y ≡ x
-sym (refl _) = refl _
+-- sym : {A : Type₀} {x y : A} → x ≡ y → y ≡ x
+-- sym (refl _) = refl _
 
-trans : {A : Type₀} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-trans p (refl _) = p
+-- trans : {A : Type₀} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+-- trans p (refl _) = p
 
 #+end_src
 
@@ -344,23 +344,23 @@ record ⊤ : Type₀ where
 -- data ⊤ : Type₀ where
 --   tt : ⊤
 
-_∧_ : Type₀ → Type₀ → Type₀
+_∧_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
 A ∧ B = A × B
 infixr 6 _∧_
 
-data _∨_ (A B : Type₀) : Type₀ where
+data _∨_ {ℓ} (A B : Type ℓ) : Type ℓ where
   inj₁ : A → A ∨ B
   inj₂ : B → A ∨ B
 infixr 5 _∨_
 
-¬_ : Type₀ → Type₀
+¬_ : {ℓ : Level} → Type ℓ → Type ℓ
 ¬ A = A → ⊥
 
-_⇒_ : Type₀ → Type₀ → Type₀
+_⇒_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
 P ⇒ Q = P → Q
 infixr 3 _⇒_
 
-_⇔_ : Type₀ → Type₀ → Type₀
+_⇔_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
 P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
 
 #+end_src
