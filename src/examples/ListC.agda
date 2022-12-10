@@ -13,9 +13,6 @@ module Helpers where
       to-from : {x : A} → from (to x) ≡ x
       from-to : {y : B} → to (from y) ≡ y
 
-  subst : {A : Type₀} {x y : A} {B : A → Type₀} → x ≡ y → B x → B y
-  subst (refl _) p = p
-
   Σ-≡ : {A : Type₀} {B : A → Type₀} {P Q : Σ a ꞉ A , B a} →
         (basePath : fst P ≡ fst Q) → (liftedPath : subst basePath (snd P) ≡ snd Q) →
         P ≡ Q
