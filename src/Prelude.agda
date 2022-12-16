@@ -32,9 +32,8 @@ module Universes where
 
 open Universes public
 
-private
-  variable
-    ℓ ℓ₁ ℓ₂ : Level
+variable
+  ℓ ℓ₁ ℓ₂ : Level
 
 module Typeformers where
 
@@ -111,3 +110,14 @@ module Equality where
     syntax step-≡˘ x y≡z y≡x = x ≡˘⟨ y≡x ⟩ y≡z
 
 open Equality public
+
+
+module HLevels where
+
+  isProp : Type ℓ → Type ℓ 
+  isProp A = (x y : A) → x ≡ y
+
+  isContr : Type ℓ → Type ℓ
+  isContr A = A × isProp A
+
+open HLevels public

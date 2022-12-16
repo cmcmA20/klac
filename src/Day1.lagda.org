@@ -152,7 +152,7 @@ false || y = y
 true  || _ = true
 infixr 4 _||_
 
-if_then_else_ : {A : Type₀} → (condition : 𝔹) → A → A → A
+if_then_else_ : {A : Type ℓ} → (condition : 𝔹) → A → A → A
 if false then _ else y = y
 if true  then x else _ = x
 

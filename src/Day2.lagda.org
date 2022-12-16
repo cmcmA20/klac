@@ -68,11 +68,11 @@ th₁ zero    _       = inj₂ id
 th₁ (suc m) zero    = inj₁ tt
 th₁ (suc m) (suc n) = th₁ m n
 
-Dec : {ℓ : Level} → Type ℓ → Type _
+Dec : Type ℓ → Type _
 Dec A = A ∨ ¬ A
 
-th₂ : Π m ꞉ ℕ , Π n ꞉ ℕ , Dec (m > n)
-th₂ = th₁
+>-dec : Π m ꞉ ℕ , Π n ꞉ ℕ , Dec (m > n)
+>-dec = th₁
 
 -- "Любое утверждение разрешимо", такое доказать нельзя
 -- LEM : Π A ꞉ Type₀ , Dec A
