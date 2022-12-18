@@ -1,0 +1,302 @@
+* Intensional dependent type theories and how to implement them
+Get ready for the adventure!
+[[./dive_into.jpg]]
+
+* People
+
+- Per Martin-Löf
+- Thierry Coquand
+- Gordon Plotkin
+- Peter Dybjer
+- Martin Hofmann
+- Thomas Streicher
+- Peter Dybjer
+- Conor McBride
+- Andreas Abel
+- David Christiansen
+- Andres Löh
+- Thorsten Altenkirch
+- Jesper Cockx
+- Ulf Norell
+
+The list is neccesarily incomplete.
+
+* Materials
+
+- <<SWIDT>> [[https://github.com/sweirich/pi-forall/blob/2022/doc/oplss.pdf][Implementing dependent types]]
+  Covers [[IDT][datatypes]], irrelevance and [[IEPM][pattern matching]], the most recent tutorial.
+- <<AADCTT>> [[https://www.cse.chalmers.se/~abela/popl18.pdf][Decidability of Conversion for Type Theory in Type Theory]]
+  Formally verified [[https://github.com/mr-ohman/logrel-mltt][implementation]] of MLTT conversion.
+- <<ALLP>> [[https://www.andres-loeh.de/LambdaPi/LambdaPi.pdf][LambdaPi]]
+  Easy tutorial, a bit dated.
+- <<DCDT>> [[https://davidchristiansen.dk/tutorials/implementing-types-hs.pdf][Checking dependent types with normalization by evaluation: A tutorial]]
+  Also easy, modern tutorial. Covers [[BTC][bidirectional typechecking]] and [[NbE][NbE]].
+- <<AKE>> [[https://raw.githubusercontent.com/AndrasKovacs/implicit-fun-elaboration/master/paper.pdf][Elaboration with first-class implicit function types]]
+  Covers [[IA][implicit arguments]], [[Tele][telescopes]], [[BTC][bidirectional]]. Code written in [[https://github.com/AndrasKovacs/implicit-fun-elaboration/tree/master/fcif][Haskell]].
+- <<JCPRU>> [[https://jesper.sikanda.be/files/proof-relevant-unification.pdf][Proof-relevant unification]]
+  Subsumes [[JCPMWK][this paper]].
+- <<NKBT>> [[https://arxiv.org/pdf/1908.05839.pdf][Bidirectional typing]]
+  Unsurprisingly covers [[BTC][bidirectional typing]].
+- <<McBPhD>> [[http://strictlypositive.org/thesis.pdf][Dependently Typed Functional Programs and their Proofs]]
+  One of the seminal works in this field.
+  Covers [[Tele][telescopes]], [[IDT][inductive types]], [[IEPM][pattern matching]] and subsumes [[McBFOU][this paper]].
+- <<PDIF>> [[https://www.cse.chalmers.se/~peterd/papers/Inductive_Families.pdf][Inductive families]]
+  Covers [[IDT][inductive types]], [[IDF][inductive families]] and their [[IEE][elimination]].
+- <<PDIIR>> [[https://www.cse.chalmers.se/~peterd/papers/Indexed_IR.pdf][Indexed induction-recursion]]
+  Covers [[IDF][inductive families]] and [[IDIR][induction-recursion]].
+- <<UNPhD>> [[https://www.cse.chalmers.se/~ulfn/papers/thesis.pdf][Towards a practical programming language based on dependent type theory]]
+  This is how Agda works.
+- <<McBE>> [[https://arxiv.org/pdf/1807.04085.pdf][Everybody's got to be somewhere]]
+  Covers a [[NR][nameless syntax]], [[TTC][provably total]] [[NbHS][hereditary substitutions]] for simply-typed
+  languages.
+- <<AAPHS>> [[https://www.cse.chalmers.se/~abela/notes/ParallelHereditarySubstitution.pdf][Parallel hereditary substitutions]]
+  Abel says it has the same efficiency as closure-based evaluation.
+- <<PHT>> [[https://www.lama.univ-savoie.fr/pagesmembres/hyvernat/Files/sct.pdf][The size-change termination principle for constructor based languages]]
+  Covers [[TTC][termination analysis]].
+- <<HoTT>> [[https://homotopytypetheory.org/book/][Homotopy type theory]]
+  Read it like poetry.
+- <<JCEDPM>> [[https://dl.acm.org/doi/10.1145/3236770][Elaborating dependent (co)pattern matching]]
+  This is how Agda works.
+- <<McBI>> [[https://personal.cis.strath.ac.uk/conor.mcbride/PlentyO-CR.pdf][I got plenty o' nuttin']]
+  Covers [[BTC][bidirectional]] and linearity.
+- <<DCER>> [[https://davidchristiansen.dk/drafts/elab-reflection-draft.pdf][Elaborator reflection]]
+  Covers [[E][elaborator]] [[R][reflection]].
+- <<JCPMWK>> [[https://jesper.sikanda.be/files/pattern-matching-without-K.pdf][Pattern matching without K]]
+  Covers [[IEPM][pattern matching]] without [[PK][K]].
+- <<McBFOU>> [[https://www.cambridge.org/core/journals/journal-of-functional-programming/article/firstorder-unification-by-structural-recursion/91476025EE07F5E0F81F8F61A0C06C3B][First-order unification by structural recursion]]
+  Covers [[UniFO][first-order unification]].
+- <<McOMC>> [[https://personal.cis.strath.ac.uk/conor.mcbride/pub/DepRep/DepRep.pdf][Outrageous but meaningful coincidences: dependent type-safe syntax and evaluation]]
+  It is about [[NR][scope-]] and type-safe implementation of a dependently typed language.
+  Strong wizardry, but the object language equality coincides with host one.
+
+* Concepts
+
+** <<NR>> Nameless representation and scope correctness
+of syntax obviates alpha-equivalence and banishes nasty bugs, this is the proper way
+to model bindings in core language. A few flavours:
+- well-scoped de Bruijn indices
+- [[https://pl.ewi.tudelft.nl/research/projects/scope-graphs/][scope graphs]]
+- [[McBE][co-de Bruijn]]
+
+** <<Tele>> Telescopes
+Excerpt from [[McBPhD][section 2.10]]:
+The term *telescope* comes from its notation-shrinking power, inspired by the kind
+of collapsible telescope that Horatio Nelson once famously put to his blind eye. It is
+a more appropriate metaphor for abbreviating a dependent type sequence than other
+collapsible structures such as accordions or opera hats because each of the concentric
+cylinders which makes up the telescope has a lip which constrains the next (and hence
+all the following cylinders).
+The optical behaviour of telescopes is helpful also. Broadly speaking, the longer an
+optical telescope, the smaller the field of view and the greater the magnification. Sim-
+ilarly, as you extend a type telescope, each new type acts as a new constraint, so the
+collection of inhabiting sequences ‘visible through the telescope’ becomes smaller but
+more informative.
+
+Example definition of telescopes over scope-indexed terms ~T~:
+#+begin_src agda2
+
+data Tele (T : Scoped ℓ) : Bwd 𝐾 → Set ℓ where
+  []   :                         Tele T Γ
+  _-,_ : T Γ → Tele T (Γ -, k) → Tele T Γ
+
+#+end_src
+
+Excerpt from [[JCPRU][section 2.5]]:
+Telescopes are much like contexts in the sense that they
+consist of a sequence of variable typings of the form (x : A). However, they are used
+for different purposes so it is best to keep the two concepts separate. While contexts
+grow to the right, telescopes grow to the left. One way to think about a telescope
+is as the tail of a context: while a context must always be closed, a telescope can
+contain free variables from an ambient context, and the telescope can be added to
+that context to produce a new, extended context.
+
+** <<T>> Typechecking
+for dependent types is [[https://cstheory.stackexchange.com/questions/41710/proof-techniques-for-showing-that-dependent-type-checking-is-decidable][decidable]].
+
+[[https://cstheory.stackexchange.com/a/41462][Andrej Bauer warns]]:
+For a wide class of type theories, type checking or inference is performed in such a way
+that we never attempt to normalize a term, unless we have established beforehand that it
+is well-typed. Similarly, we never attempt to normalize a type, unless we have already
+established that it is a type. Because of this, we can be sure that normalization will
+terminate (which requires a separate proof).
+
+*** <<BTC>> [[https://ncatlab.org/nlab/show/bidirectional+typechecking][Bidirectional type checking]]
+is an optimal method for making your type system *syntax-directed*. Read [[NKBT][this]].
+Also [[McBI][section 3]] and a [[https://pigworker.wordpress.com/2018/08/06/basics-of-bidirectionalism/][blog post]] by McBride. This [[https://oleg.fi/gists/posts/2020-08-03-bidi-pts.html][post]] by Oleg Grenrus. Haskell [[DCDT][here]].
+
+** <<N>> Normalization
+*** <<NbE>> Normalization by evaluation
+[[./nbe.jpg]]
+Syntactic forms are *reflected* into values (evaluated) then *reified* (read back)
+into syntax.
+[[https://proofassistants.stackexchange.com/questions/1068/tutorial-implementations-of-nbe][Mike asked about tutorial implementations]], and indeed [[https://github.com/jozefg/nbe-for-mltt/blob/master/nbe-explanation.md][there's one for MLTT]], written
+in OCaml. [[DCDT][Haskell one]].
+
+*** <<NbHS>> Normalization by hereditary substitutions
+*[[http://twelf.org/wiki/Hereditary_substitution][Hereditary substitution]]* is a syntax transformation that respects [[http://twelf.org/wiki/Canonical_form][canonical forms]].
+Read [[https://proofassistants.stackexchange.com/questions/1174/what-is-hereditary-substitution-and-why-should-i-use-it][this]]. The answer by András Kovács is incorrect about operational efficiency, see
+[[AAPHS][Abel]] or [[McBE][McBride]]. [[https://cstheory.stackexchange.com/a/41928][AFAIK]] no one implemented this for dependently typed case.
+
+** <<ID>> Inductive defintions
+Read [[https://proofassistants.stackexchange.com/questions/999/easy-ways-to-introduce-inductive-types][this]]. Meditate on [[https://math.andrej.com/2013/08/28/the-elements-of-an-inductive-type/][this]], distinction between object and meta levels is crucial.
+
+*** <<IDT>> [[https://ncatlab.org/nlab/show/inductive+type][Inductive types]]
+don't need an explanation.
+
+*** <<IDF>> [[https://ncatlab.org/nlab/show/inductive+family][Inductive families]]
+(or indexed inductive types) are "weapons of mass construction"
+according to Xavier Leroy. They allow you to simultaneously define multiple inductive types,
+indexed by another inductive type.
+
+*** <<IDIR>> [[https://ncatlab.org/nlab/show/inductive-recursive+type][Induction-recursion]]
+Simultaneously declaring inductive type and a recursive function on this type.
+Considerably ups expressive power of your language, you can construct type universes with this.
+
+*** <<IDII>> [[https://ncatlab.org/nlab/show/inductive-inductive+type][Induction-induction]]
+Simultaneously declaring inductive type and an inductive predicate over this type.
+Research level stuff, do not try to implement at home. Read [[https://cs.stackexchange.com/questions/64130/what-is-induction-induction/64139#64139][this]].
+
+** How to use inductive definitions
+*** <<IEE>> Explicit eliminators
+aka *induction principles*. They can be derived [[PDIF][automatically]] for any inductive definition.
+Всем любителям явных элиминаторов рекомендую сначала навернуть доказательств с использованием J.
+
+*** <<IEPM>> Pattern matching
+"The trouble with raw type theory is not that it is hard to write, but that it is hard to
+read." Pattern matching considerably remedies the pain of using explicit eliminators at the
+cost of requiring solutions for [[Uni][unification]] problems. These problems arise when checking
+[[TPC][pattern coverage]].
+
+Excerpt from [[JCPRU][section 3.4]]:
+When performing case analysis on a variable from an inductive family, the type-
+checker of a dependently typed language needs to determine which constructors
+can occur in a given position and how the variables need to be instantiated for
+the pattern to be well-typed. To do this, it applies unification to the indices of
+the datatype in question. If unification determines that there can be no such
+substitution, then we can skip the case for the corresponding constructor. This
+method of solving equations to either gain more information about the type of the
+right-hand side or to derive an absurdity is called *specialization by unification*.
+
+Definitions using pattern matching must be elaborated into the core language. This process
+is [[JCEDPM][far from trivial]].
+
+If you translate pattern matching into eliminators, take care to avoid accidentally introducing [[PK][K]]!
+Refrain from using heterogeneous equality, restrict usage of ~deletion~ and ~injectivity~
+unification rules.
+
+** <<IA>> Implicit arguments
+Without this you are doomed to explicitly write down every term, programs become repetitive
+and unreadable.
+Implementation typically requires [[MV][metavariables]], look [[UNPhD][here]].
+
+** <<H>> Holes
+aka *interaction points*. [[UNPhD][Usually]] represented as [[MV][metavariables]] which will not be solved
+automatically.
+
+** <<MV>> Metavariables
+Easy to add, hard to support. Solving them requires [[UniPHO][higher-order unification]]!
+
+** <<Uni>> Unification
+*** <<UniFO>> First-order unification
+Explained [[McBFOU][here]], implemented in Agda [[https://github.com/wenkokke/FirstOrderUnificationInAgda][here]] (did not age well though).
+
+*Pattern unification* in dependently typed setting is [[JCPRU][hard]]:
+In particular, some standard unification rules are no longer valid in the presence of universes
+and indexed datatypes ... When dependently typed terms themselves become the subject of unification,
+the unification algorithm can encounter heterogeneous equations: equations in which the left- and
+right-hand side have different types, that only become equal after previous equations have been solved.
+
+*** <<UniPHO>> Higher-order pattern unification
+Some code in [[https://github.com/Saizan/miller][Agda]].
+
+** Universe hierarchy
+You must have this because type in type is [[https://mathoverflow.net/questions/18089/what-is-the-manner-of-inconsistency-of-girards-paradox-in-martin-lof-type-theor][inconsistent]].
+Read [[https://cstheory.stackexchange.com/questions/48979/references-on-implementing-universe-levels-over-mltt][this]].
+
+*** Universe polymorphism
+We have [[https://agda.readthedocs.io/en/v2.6.2.2.20221128/language/universe-levels.html][this]] in Agda, an explicit flavour.
+Implicit one is called *[[https://ncatlab.org/nlab/show/typical+ambiguity][typical ambiguity]]*, see [[https://golem.ph.utexas.edu/category/2012/12/universe_polymorphism_and_typi.html][Shulman]].
+
+*** Universe cumulativity
+If you have a judgement ~a : U n~ then you can deduce ~a : U (n + 1)~.
+Can also be seen as universe subtyping/subsumption so it _requires that all type formers are checkable_
+because typing of types is not unique.
+
+Implicit universe levels may require a solver.
+
+** Checking totality
+*** <<TPC>> Pattern coverage
+is used to check totality of functions defined by [[IEPM][pattern matching]], requires [[Uni][unification]].
+
+*** <<TSP>> Strict positivity
+needs to be checked for [[ID][inductive definitions]]. Otherwise you can encode Curry's paradox, look [[https://counterexamples.org/strict-positivity.html][here]].
+*Positive* but not *strictly positive* inductive types can be unproblematic but it's not obvious how
+to check their totality. Implementation should be straightforward, see [[https://github.com/agda/agda/blob/master/src/full/Agda/TypeChecking/Positivity.hs][Agda]].
+
+*** <<TTC>> Termination checking
+is required for recursive functions. The problem is undecidable in general but if you allow only
+*structural recursion* it's enough to rule out bad (and some good) cases. Those good cases can be
+salvaged with [[https://agda.github.io/agda-stdlib/Induction.WellFounded.html][well-founded induction]]. Consult McBride ([[McBFOU][this]] and [[McBE][that]]) on how to avoid such explicit
+termination proofs. For implementation consult [[PHT][this]] or [[https://github.com/agda/agda/tree/master/src/full/Agda/Termination][Agda source code]].
+
+** <<E>> Elaboration
+You usually write programs and proofs in *surface syntax*. This stuff is then fed to *elaborator*,
+which constructs a valid core language term. So elaborator has to be able to find [[IA][implicit arguments]],
+[[T][check types]] and [[N][normalize]] expressions.
+
+** <<R>> Reflection
+We're talking about *static reflection* (aka compile-time reflection, but the line between
+compile- and run-time is blurry in deptyped land). It was first described [[DCER][here]], now it's used in
+Idris and [[https://github.com/alhassy/gentle-intro-to-reflection][Agda]].
+
+** <<PCo>> Consistency
+*Consistency* is a meta-theoretic property of both type theories and of logics. A type theory is said
+to be consistent if and only if not every type is inhabited.
+
+** <<PSN>> Strong normalization
+*Strong normalization* means that for all well-typed terms all reduction sequences terminate.
+In other words, for any well-typed term the tree of all possible reductions is well-founded,
+leaves of this tree are normal forms.
+
+[[https://cstheory.stackexchange.com/a/41457][cody]]: "normalization of well-typed terms is a necessary condition for the type inference problem
+to be decidable". Then we can conclude that MLTT is strongly normalizing.
+
+** <<PC>> Canonicity
+[[https://ncatlab.org/nlab/show/canonical+form][Every term computes to canonical form]].
+Adding any axiom immediately breaks this property and you will have to deal with
+abominable terms which are stuck computationwise though aren't made of constructors.
+
+** <<PITC>> Injectivity of type constructors
+[[JCPRU][Jesper]]: it is an undesirable property because it is not only incompatible with the [[PLEM][law of the
+excluded middle]] (Theorem 93), but also with [[PU][univalence]] (Theorem 92) and with
+an [[PIU][impredicative universe of proposition]].
+
+** <<PDC>> Disjointness of constructors
+is undesirable because it holds only in the presence of [[PK][K]].
+Do not assume this, specific instances can be proved manually or derived for sets.
+
+** <<PLE>> Large elimination
+When you construct an element of universe by eliminating an inductive value.
+Good one to have, also it allows you to safely circumvent the [[TSP][strict positivity]] check.
+Read [[https://cstheory.stackexchange.com/questions/40339/what-exactly-is-large-elimination][this]] for more info.
+
+** <<PIU>> Impredicatve universes
+Having only one impredicative universe for propositions is fine. Never combine with
+[[PLE][large eliminations]] and [[PLE][LEM]] simultaneously, this [[https://github.com/FStarLang/FStar/issues/360][leads to inconsistency]].
+
+** <<PLEM>> Law of excluded middle
+This should be independent from your type system.
+
+** <<PUIP>> Uniqueness of identity proofs
+Negation of [[PU][univalence]], states that every equality proof is equal to ~refl~.
+
+** <<PK>> K
+is a [[PC][computational]] version of [[PUIP][UIP]]. [[https://ncatlab.org/nlab/show/axiom+K+%28type+theory%29][K]] is incompatible with [[PU][univalence]], but I guess
+it still holds for sets. Avoid the general version.
+
+** <<PU>> Univalence
+If two types are equivalent then they are equal. Read more [[https://ncatlab.org/nlab/show/univalence+axiom][here]] and there.
+Preferably this should be a theorem in your system, otherwise let it be independent.
+
+** <<PFE>> Function extensionality
+is a consequence of [[PU][univalence]]. Highly desirable in practice but independent from MLTT.
