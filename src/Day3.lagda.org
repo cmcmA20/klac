@@ -1,7 +1,7 @@
 * стандартные прокашливания
 #+begin_src agda2
 
-{-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --safe --guardedness #-}
 module Day3 where
 
 open import Prelude
@@ -18,13 +18,16 @@ open import Day2
 #+begin_src agda2
 
 forget-evidence : {A : Type ℓ} → Dec A → 𝔹
-forget-evidence = {!!}
+forget-evidence (inj₁ _) = true
+forget-evidence (inj₂ _) = false
 
 from-boolean-reflection : {A : Type ℓ} (d : Dec A) → forget-evidence d ≡ true → A 
-from-boolean-reflection = {!!}
+from-boolean-reflection (inj₁ a) _ = a
 
 to-boolean-reflection : {A : Type ℓ} (d : Dec A) → A → forget-evidence d ≡ true
-to-boolean-reflection = {!!}
+to-boolean-reflection (inj₁ _)  _ = refl _
+to-boolean-reflection (inj₂ p) x with p x
+... | ()
 
 #+end_src
 
@@ -34,90 +37,59 @@ to-boolean-reflection = {!!}
 #+begin_src agda2
 
 data _>ᵢ_ : ℕ → ℕ → Type₀ where
-  -- TODO
+  sz : {n : ℕ  } →          suc n >ᵢ 0
+  ss : {m n : ℕ} → m >ᵢ n → suc m >ᵢ suc n
 
 >ᵢ-dec : (m n : ℕ) → Dec (m >ᵢ n)
->ᵢ-dec = {!!}
-
->ᵢ⇔> : (m n : ℕ) → (m >ᵢ n) ⇔ (m > n)
->ᵢ⇔> = {!!}
+>ᵢ-dec zero n = inj₂ (λ ())
+>ᵢ-dec (suc m) zero = inj₁ sz
+>ᵢ-dec (suc m) (suc n) with >ᵢ-dec m n
+... | inj₁ x = inj₁ (ss x)
+... | inj₂ x = inj₂ (λ { (ss prf) → x prf})
 
 _>ᵣ_ : ℕ → ℕ → 𝔹
 m >ᵣ n = forget-evidence (>ᵢ-dec m n)
 
 -- if (n > 0) { return (n * n); } else return false
 javascriptIsFun : (n : ℕ) → if n >ᵣ 0 then ℕ else 𝔹
-javascriptIsFun = {!!}
+javascriptIsFun n with n >ᵣ 0
+... | true  = n * n
+... | false = false
 
--- BONUS
 ⇔-preserves-Dec : {P Q : Type ℓ} → (P ⇔ Q) → (Dec P ⇔ Dec Q)
-⇔-preserves-Dec = {!!}
-
->ᵢ-dec₂ : (m n : ℕ) → Dec (m >ᵢ n)
->ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (>-dec m n)
+fst (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₁ x) = inj₁ (p⇒q x)
+fst (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₂ x) = inj₂ λ z → x (q⇒p z)
+snd (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₁ x) = inj₁ (q⇒p x)
+snd (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₂ x) = inj₂ (λ z → x (p⇒q z))
 
 >ᵢ-prop : (m n : ℕ) → isProp (m >ᵢ n)
->ᵢ-prop = {!!}
+>ᵢ-prop (suc m) zero    sz     sz     = refl _
+>ᵢ-prop (suc m) (suc n) (ss x) (ss y) = cong ss (>ᵢ-prop m n x y)
 
 #+end_src
 
-* Математическая индукция, элиминаторы
-Ещё раз про дуальность данных (~data~) и коданных (~record~)？
-Отличие /индукции/ от /рекурсии/.
-разобрать индукцию для натуральных, на дом индукция для 𝔹 и List A
+* Коиндуктивные типы (~record~)
 
 #+begin_src agda2
 
--- nat-ind′ : {P : ℕ → Type₀} → P 0 → ((n : ℕ) → P n → P (suc n)) → (m : ℕ) → P m
-nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π n ꞉ ℕ , (P n ⇒ P (suc n))) → Π m ꞉ ℕ , P m
-nat-ind = {!!}
+record TheBox : Type₀ where
+  coinductive
+  field
+    finished : 𝔹
+    pushTheButton : if finished then ℕ else TheBox
 
-nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
-nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
+zBox : (n : ℕ) → TheBox
+zBox n = record { finished = true ; pushTheButton = n }
 
-#+end_src
+wBox : (n : ℕ) → TheBox
+wBox n = helper n n
+  where
+  helper : ℕ → ℕ → TheBox
+  helper zero    m = record { finished = true ; pushTheButton = m }
+  helper (suc n) m = record { finished = false ; pushTheButton = helper n m }
 
-* Рефакторинг доказательств, стили
-
-#+begin_src agda2
-
--- сюда клади леммы, обнаруженные в ходе доказательства
-
-#+end_src
-
-** Доказываем с промежуточными шагами во временных переменных
-
-#+begin_src agda2
-
-invert-beginner : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-beginner = {!!}
-
-#+end_src
-
-** Доказываем в стиле комбинаторов
-
-#+begin_src agda2
-
-invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-cylon = {!!}
-
--- suc-inj : {m n : ℕ} → suc m ≡ suc n → m ≡ n
--- suc-inj = {!!}
-
--- _∙_ = trans
--- infixr 8 _∙_
-
--- invert : (a b : ℕ) → a + a ≡ b + b → a ≡ b
--- invert zero zero (refl _) = refl _
--- invert (suc a) (suc b) p = cong suc (invert _ _ (suc-inj ((comm _ a) ∙ suc-inj p ∙ comm b _)))
-
-#+end_src
-
-** Доказываем через equality reasoning
-
-#+begin_src agda2
-
-invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-reasoning = {!!}
+strangeOne : TheBox
+TheBox.finished strangeOne = false
+TheBox.pushTheButton strangeOne = strangeOne
 
 #+end_src
