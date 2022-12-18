@@ -1,0 +1,72 @@
+* стандартные прокашливания
+#+begin_src agda2
+
+{-# OPTIONS --allow-unsolved-metas #-}
+module Day3 where
+
+open import Prelude
+open import Day1
+open import Day2
+open import Day3
+
+#+end_src
+
+* Математическая индукция, элиминаторы
+Отличие /индукции/ от /рекурсии/.
+разобрать индукцию для натуральных, на дом индукция для 𝔹 и List A
+
+#+begin_src agda2
+
+-- nat-ind′ : {P : ℕ → Type₀} → P 0 → ((n : ℕ) → P n → P (suc n)) → (m : ℕ) → P m
+nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π n ꞉ ℕ , (P n ⇒ P (suc n))) → Π m ꞉ ℕ , P m
+nat-ind = {!!}
+
+nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
+nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
+
+#+end_src
+
+* Рефакторинг доказательств, стили
+
+#+begin_src agda2
+
+-- сюда клади леммы, обнаруженные в ходе доказательства
+
+#+end_src
+
+** Доказываем с промежуточными шагами во временных переменных
+
+#+begin_src agda2
+
+invert-beginner : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-beginner = {!!}
+
+#+end_src
+
+** Доказываем в стиле комбинаторов
+
+#+begin_src agda2
+
+invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-cylon = {!!}
+
+-- suc-inj : {m n : ℕ} → suc m ≡ suc n → m ≡ n
+-- suc-inj = {!!}
+
+-- _∙_ = trans
+-- infixr 8 _∙_
+
+-- invert : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+-- invert zero zero (refl _) = refl _
+-- invert (suc a) (suc b) p = cong suc (invert _ _ (suc-inj ((comm _ a) ∙ suc-inj p ∙ comm b _)))
+
+#+end_src
+
+** Доказываем через equality reasoning
+
+#+begin_src agda2
+
+invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-reasoning = {!!}
+
+#+end_src
