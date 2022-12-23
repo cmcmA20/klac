@@ -92,4 +92,17 @@ strangeOne : TheBox
 TheBox.finished strangeOne = false
 TheBox.pushTheButton strangeOne = strangeOne
 
+record Stream (A : Type ℓ) : Type ℓ where
+  coinductive
+  constructor _∷_
+  field
+    head : A
+    tail : Stream A
+open Stream public
+
+-- из потока всегда можно взять элемент, в отличие от списка
+_!_ : {A : Type ℓ} → Stream A → ℕ → A
+s ! zero  = head s
+s ! suc i = tail s ! i
+
 #+end_src
