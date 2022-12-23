@@ -18,7 +18,7 @@ open import Day3
 >ᵢ⇔> = {!!}
 
 >ᵢ-dec₂ : (m n : ℕ) → Dec (m >ᵢ n)
->ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (>-dec m n)
+>ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (dec′-to-dec (>-dec m n))
 
 #+end_src
 

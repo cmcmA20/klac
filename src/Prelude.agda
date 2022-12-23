@@ -82,8 +82,8 @@ module Equality where
   trans : {x y z : A} → x ≡ y → y ≡ z → x ≡ z
   trans p (refl _) = p
 
-  subst : {A : Type ℓ₁} {B : A → Type ℓ₂} {x y : A} → x ≡ y → B x → B y
-  subst (refl _) p = p
+  subst : {A : Type ℓ₁} (B : A → Type ℓ₂) {x y : A} → x ≡ y → B x → B y
+  subst _ (refl _) p = p
 
   module ≡-Reasoning {A : Set ℓ} where
 

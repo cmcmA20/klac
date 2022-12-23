@@ -1,8 +1,8 @@
 * стандартные прокашливания
 #+begin_src agda2
 
-{-# OPTIONS --allow-unsolved-metas #-}
-module Day3 where
+{-# OPTIONS --guardedness --allow-unsolved-metas #-}
+module Day4 where
 
 open import Prelude
 open import Day1
@@ -24,11 +24,37 @@ nat-ind = {!!}
 nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
 nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
 
+cons-nat-rec-is-id : (m : ℕ) → nat-rec {ℕ} 0 suc m ≡ m
+cons-nat-rec-is-id = {!!}
+
+list-rec : {A R : Type ℓ} → R → (A → R → R) → (x : List A) → R
+list-rec z _   []       = z
+list-rec z _⊕_ (x ∷ xs) = x ⊕ (list-rec z _⊕_ xs)
+
+map-as-list-rec : {A B : Type ℓ} (f : A → B) → List A → List B
+map-as-list-rec f xs = list-rec [] (λ x acc → f x ∷ acc) xs
+
+-- the usual definition
+map : {A B : Type ℓ} (f : A → B) → List A → List B
+map _ []       = []
+map f (x ∷ xs) = f x ∷ map f xs
+
+same-map : {A B : Type ℓ} (f : A → B) (xs : List A) → map-as-list-rec f xs ≡ map f xs
+same-map = {!!}
+
+cons-list-rec-is-id : {A : Type ℓ} (xs : List A) → list-rec [] (_∷_) xs ≡ xs
+cons-list-rec-is-id = {!!}
+
 #+end_src
 
 * Рефакторинг доказательств, стили
 
 #+begin_src agda2
+
+-- you'll need this
+_$_ : {A : Type ℓ} {B : A → Type ℓ} → ((a : A) → B a) → (x : A) → B x
+f $ x = f x
+infixr 0 _$_
 
 -- сюда клади леммы, обнаруженные в ходе доказательства
 
@@ -39,7 +65,8 @@ nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
 #+begin_src agda2
 
 invert-beginner : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-beginner = {!!}
+invert-beginner zero zero _ = refl _
+invert-beginner (suc a) (suc b) r = {!!}
 
 #+end_src
 
@@ -48,17 +75,11 @@ invert-beginner = {!!}
 #+begin_src agda2
 
 invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-cylon = {!!}
-
--- suc-inj : {m n : ℕ} → suc m ≡ suc n → m ≡ n
--- suc-inj = {!!}
-
--- _∙_ = trans
--- infixr 8 _∙_
-
--- invert : (a b : ℕ) → a + a ≡ b + b → a ≡ b
--- invert zero zero (refl _) = refl _
--- invert (suc a) (suc b) p = cong suc (invert _ _ (suc-inj ((comm _ a) ∙ suc-inj p ∙ comm b _)))
+invert-cylon zero zero _ = refl _
+invert-cylon (suc a) (suc b) r = {!!}
+  where
+  _∙_ = trans
+  infixr 8 _∙_
 
 #+end_src
 
@@ -67,6 +88,79 @@ invert-cylon = {!!}
 #+begin_src agda2
 
 invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-reasoning = {!!}
+invert-reasoning zero zero _ = refl _
+invert-reasoning (suc a) (suc b) r = {!!}
+  where open ≡-Reasoning
+
+#+end_src
+
+* Регулярные выражения
+
+#+begin_src agda2
+
+data RegExp (A : Type ℓ) : Type ℓ where
+  ø    :                       RegExp A
+  ε    :                       RegExp A
+  #_   : A        →            RegExp A
+  _<>_ : RegExp A → RegExp A → RegExp A
+  _∣_  : RegExp A → RegExp A → RegExp A
+  _*   : RegExp A →            RegExp A
+infixr 5 _<>_
+
+private
+  variable
+    A : Type ℓ
+    x : A
+    s s₁ s₂ : List A
+    re re₁ re₂ : RegExp A
+
+infix 0 _=~_
+data _=~_ {A : Type ℓ} : List A → RegExp A → Type ℓ where
+  MEmpty  : []     =~ ε
+  MChar   : x ∷ [] =~ # x
+  MApp    : s₁ =~ re₁ →
+            s₂ =~ re₂ →
+            s₁ ++ s₂ =~ re₁ <> re₂
+  MUnionL : s₁ =~ re₁ →
+            s₁ =~ re₁ ∣ re₂
+  MUnionR : s₂ =~ re₂ →
+            s₂ =~ re₁ ∣ re₂
+  MStar0  : [] =~ re *
+  MStarS  : s₁ =~ re →
+            s₂ =~ re * →
+            s₁ ++ s₂ =~ re *
+
+ex₁ : 1 ∷ [] =~ # 1
+ex₁ = MChar
+
+ex₂ : 1 ∷ 2 ∷ [] =~ # 1 <> # 2
+ex₂ = MApp MChar MChar
+
+ex₃ : ¬ (1 ∷ 2 ∷ [] =~ # 1)
+ex₃ ()
+
+reList : List A → RegExp A
+reList []       = ε
+reList (x ∷ xs) = # x <> reList xs
+
+ex₄ : 1 ∷ 2 ∷ 3 ∷ [] =~ reList (1 ∷ 2 ∷ 3 ∷ [])
+ex₄ = MApp MChar (MApp MChar (MApp MChar MEmpty))
+
+matchStar : (s =~ re) → (s =~ re *)
+matchStar {re = re} x = subst (_=~ re *) nil-right-neutral (MStarS x MStar0)
+  where
+  nil-right-neutral : s ++ [] ≡ s
+  nil-right-neutral = {!!}
+
+#+end_src
+
+* Бритва Хаттона
+Так называется тривиальный язык, в котором есть всего два вида выражений: константы и операция сложения.
+
+#+begin_src agda2
+
+data Exp : Type₀ where
+  Const : ℕ → Exp
+  _＋_  : Exp → Exp → Exp
 
 #+end_src

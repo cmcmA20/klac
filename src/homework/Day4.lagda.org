@@ -1,0 +1,55 @@
+#+begin_src agda2
+
+{-# OPTIONS --guardedness #-}
+module homework.Day4 where
+
+open import Prelude
+open import Day1
+open import Day2
+open import Day3
+open import Day4
+
+#+end_src
+
+* Задача 1 (⋆⋆)
+Покажите, что ~reNotEmpty re~ корректно /отражает/ ситуацию, в которой существует любая строка, матчащаяся
+регуляркой ~re~.
+TODO
+
+#+begin_src agda2
+
+reNotEmpty : {A : Type ℓ} → RegExp A → 𝔹
+reNotEmpty ø = false
+reNotEmpty ε = true
+reNotEmpty (# _) = true
+reNotEmpty (re₁ <> re₂) = reNotEmpty re₁ && reNotEmpty re₂
+reNotEmpty (re₁ ∣ re₂) = reNotEmpty re₁ || reNotEmpty re₂
+reNotEmpty (_ *) = true
+
+reNE-correct : {A : Type ℓ} {s : List A} {re : RegExp A} →
+               Reflects (s =~ re) (reNotEmpty re)
+reNE-correct = {!!}
+
+#+end_src
+
+* [[https://en.wikipedia.org/wiki/Pumping_lemma_for_regular_languages][Лемма о накачке]] (⋆⋆⋆⋆)
+Если строка ~s~ матчится регуляркой, и длина строки больше, чем некоторая константа, то внутри ~s~ существует
+суффикс, который можно невозобранно повторять, и результат тоже будет матчиться той же регуляркой.
+TODO
+
+#+begin_src agda2
+
+pumpingConstant : {A : Type ℓ} → RegExp A → ℕ
+pumpingConstant ø = 0
+pumpingConstant ε = 1
+pumpingConstant (# _) = 2
+pumpingConstant (re₁ <> re₂) = pumpingConstant re₁ + pumpingConstant re₂
+pumpingConstant (re₁ ∣ re₂) = pumpingConstant re₁ + pumpingConstant re₂
+pumpingConstant (_ *) = 1
+
+-- pumpingLemma : (s =~ re) →
+--                (pumpingConstant re ≤ length s) →
+--                Σ _ λ s₁ → Σ _ λ s₂ → Σ _ λ s₃ → (s ≡ s₁ ++ s₂ ++ s₃) × (¬ (s₂ ≡ [])) × ((m : ℕ) → s₁ ++ s₂ ++ s₃ =~ re)
+-- pumpingLemma = {!!}
+
+#+end_src

@@ -17,16 +17,34 @@ open import Day2
 
 #+begin_src agda2
 
+data Reflects (P : Set ℓ) : 𝔹 → Type ℓ where
+  ofʸ : ( p :   P) → Reflects P true
+  ofⁿ : (¬p : ¬ P) → Reflects P false
+
+record Dec (P : Type ℓ) : Type ℓ where
+  constructor _because_
+  field
+    does : 𝔹
+    proof : Reflects P does
+open Dec public
+
+pattern yes p = true  because ofʸ  p
+pattern no ¬p = false because ofⁿ ¬p
+
+dec′-to-dec : {A : Type ℓ} → Dec′ A → Dec A
+dec′-to-dec (inj₁ x) = yes x
+dec′-to-dec (inj₂ x) = no x
+
 forget-evidence : {A : Type ℓ} → Dec A → 𝔹
-forget-evidence (inj₁ _) = true
-forget-evidence (inj₂ _) = false
+forget-evidence (yes _) = true
+forget-evidence (no _) = false
 
 from-boolean-reflection : {A : Type ℓ} (d : Dec A) → forget-evidence d ≡ true → A 
-from-boolean-reflection (inj₁ a) _ = a
+from-boolean-reflection (yes a) _ = a
 
 to-boolean-reflection : {A : Type ℓ} (d : Dec A) → A → forget-evidence d ≡ true
-to-boolean-reflection (inj₁ _)  _ = refl _
-to-boolean-reflection (inj₂ p) x with p x
+to-boolean-reflection (yes _)  _ = refl _
+to-boolean-reflection (no ¬p) x with ¬p x
 ... | ()
 
 #+end_src
@@ -41,11 +59,11 @@ data _>ᵢ_ : ℕ → ℕ → Type₀ where
   ss : {m n : ℕ} → m >ᵢ n → suc m >ᵢ suc n
 
 >ᵢ-dec : (m n : ℕ) → Dec (m >ᵢ n)
->ᵢ-dec zero n = inj₂ (λ ())
->ᵢ-dec (suc m) zero = inj₁ sz
+>ᵢ-dec zero n = no (λ ())
+>ᵢ-dec (suc m) zero = yes sz
 >ᵢ-dec (suc m) (suc n) with >ᵢ-dec m n
-... | inj₁ x = inj₁ (ss x)
-... | inj₂ x = inj₂ (λ { (ss prf) → x prf})
+... | yes x  = yes (ss x)
+... | no  ¬x = no (λ { (ss prf) → ¬x prf})
 
 _>ᵣ_ : ℕ → ℕ → 𝔹
 m >ᵣ n = forget-evidence (>ᵢ-dec m n)
@@ -57,10 +75,10 @@ javascriptIsFun n with n >ᵣ 0
 ... | false = false
 
 ⇔-preserves-Dec : {P Q : Type ℓ} → (P ⇔ Q) → (Dec P ⇔ Dec Q)
-fst (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₁ x) = inj₁ (p⇒q x)
-fst (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₂ x) = inj₂ λ z → x (q⇒p z)
-snd (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₁ x) = inj₁ (q⇒p x)
-snd (⇔-preserves-Dec (p⇒q , q⇒p)) (inj₂ x) = inj₂ (λ z → x (p⇒q z))
+fst (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (p⇒q x)
+fst (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no λ z → ¬x (q⇒p z)
+snd (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (q⇒p x)
+snd (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no (λ z → ¬x (p⇒q z))
 
 >ᵢ-prop : (m n : ℕ) → isProp (m >ᵢ n)
 >ᵢ-prop (suc m) zero    sz     sz     = refl _

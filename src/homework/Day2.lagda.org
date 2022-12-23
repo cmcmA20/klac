@@ -67,7 +67,7 @@ _∘_ : {!!}
 
 #+begin_src agda2
 
-contra′ : {A B : 𝓤₀} → (lem : (Π X ꞉ 𝓤₀ , Dec X)) → (¬ B ⇒ ¬ A) → (A ⇒ B)
+contra′ : {A B : 𝓤₀} → (lem : (Π X ꞉ 𝓤₀ , Dec′ X)) → (¬ B ⇒ ¬ A) → (A ⇒ B)
 contra′ = {!!}
 
 #+end_src
@@ -105,7 +105,7 @@ Even n = {!!}
 Odd : ℕ → Type₀
 Odd n = {!!}
 
-even-dec : Π n ꞉ ℕ , Dec (Even n)
+even-dec : Π n ꞉ ℕ , Dec′ (Even n)
 even-dec = {!!}
 
 #+end_src
