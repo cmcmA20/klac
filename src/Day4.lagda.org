@@ -1,7 +1,7 @@
 * стандартные прокашливания
 #+begin_src agda2
 
-{-# OPTIONS --guardedness --allow-unsolved-metas #-}
+{-# OPTIONS --guardedness --safe #-}
 module Day4 where
 
 open import Prelude
@@ -19,14 +19,17 @@ open import Day3
 
 -- nat-ind′ : {P : ℕ → Type₀} → P 0 → ((n : ℕ) → P n → P (suc n)) → (m : ℕ) → P m
 nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π n ꞉ ℕ , (P n ⇒ P (suc n))) → Π m ꞉ ℕ , P m
-nat-ind = {!!}
+nat-ind p₀ pₙ zero    = p₀
+nat-ind p₀ pₙ (suc m) = pₙ m (nat-ind p₀ pₙ m)
 
 nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
 nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
 
 cons-nat-rec-is-id : (m : ℕ) → nat-rec {ℕ} 0 suc m ≡ m
-cons-nat-rec-is-id = {!!}
+cons-nat-rec-is-id zero = refl _
+cons-nat-rec-is-id (suc m) = cong suc (cons-nat-rec-is-id m)
 
+-- foldr
 list-rec : {A R : Type ℓ} → R → (A → R → R) → (x : List A) → R
 list-rec z _   []       = z
 list-rec z _⊕_ (x ∷ xs) = x ⊕ (list-rec z _⊕_ xs)
@@ -40,7 +43,8 @@ map _ []       = []
 map f (x ∷ xs) = f x ∷ map f xs
 
 same-map : {A B : Type ℓ} (f : A → B) (xs : List A) → map-as-list-rec f xs ≡ map f xs
-same-map = {!!}
+same-map f [] = refl []
+same-map f (x ∷ xs) = cong (f x ∷_) (same-map f xs)
 
 cons-list-rec-is-id : {A : Type ℓ} (xs : List A) → list-rec [] (_∷_) xs ≡ xs
 cons-list-rec-is-id = {!!}
@@ -56,7 +60,27 @@ _$_ : {A : Type ℓ} {B : A → Type ℓ} → ((a : A) → B a) → (x : A) → 
 f $ x = f x
 infixr 0 _$_
 
--- сюда клади леммы, обнаруженные в ходе доказательства
+suc-inj : (a b : ℕ) → suc a ≡ suc b → a ≡ b
+suc-inj a _ (refl _) = refl _
+
+suc-plus-comm : (a b : ℕ) → a + suc b ≡ suc (a + b)
+suc-plus-comm zero _ = refl _
+suc-plus-comm (suc a) b = cong suc (suc-plus-comm _ _)
+
+plus-comm : (a b : ℕ) → a + b ≡ b + a
+plus-comm zero zero = refl _
+plus-comm zero (suc b) = cong suc (plus-comm _ b)
+plus-comm (suc a) zero = cong suc (plus-comm a _)
+plus-comm (suc a) (suc b) = cong suc $
+  begin
+    a + suc b
+  ≡⟨ suc-plus-comm _ _ ⟩
+    suc (a + b)
+  ≡⟨ cong suc (plus-comm a _) ⟩
+    suc (b + a)
+  ≡˘⟨ suc-plus-comm _ _ ⟩
+    b + suc a
+  ∎ where open ≡-Reasoning
 
 #+end_src
 
@@ -64,9 +88,15 @@ infixr 0 _$_
 
 #+begin_src agda2
 
-invert-beginner : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-beginner : (a b : ℕ) (r : a + a ≡ b + b) → a ≡ b
 invert-beginner zero zero _ = refl _
-invert-beginner (suc a) (suc b) r = {!!}
+invert-beginner (suc a) (suc b) r =
+  let
+    r₂ = suc-inj _ _ r
+    r₃ = trans (plus-comm _ a) r₂
+    r₄ = trans r₃ (plus-comm b _)
+    r₅ = suc-inj _ _ r₄
+  in cong suc (invert-beginner a b r₅)
 
 #+end_src
 
@@ -76,7 +106,8 @@ invert-beginner (suc a) (suc b) r = {!!}
 
 invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
 invert-cylon zero zero _ = refl _
-invert-cylon (suc a) (suc b) r = {!!}
+invert-cylon (suc a) (suc b) r =
+  cong suc $ invert-beginner _ _ $ suc-inj _ _ $ plus-comm _ a ∙ suc-inj _ _ r ∙ plus-comm b _
   where
   _∙_ = trans
   infixr 8 _∙_
@@ -89,8 +120,16 @@ invert-cylon (suc a) (suc b) r = {!!}
 
 invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
 invert-reasoning zero zero _ = refl _
-invert-reasoning (suc a) (suc b) r = {!!}
-  where open ≡-Reasoning
+invert-reasoning (suc a) (suc b) r = cong suc $ invert-reasoning _ _ $ suc-inj _ _ $
+  begin
+    suc (a + a)
+  ≡⟨ plus-comm _ a ⟩
+    a + suc a
+  ≡⟨ suc-inj _ _ r ⟩
+    b + suc b
+  ≡⟨ plus-comm b _ ⟩
+    suc (b + b)
+  ∎ where open ≡-Reasoning
 
 #+end_src
 
@@ -150,17 +189,7 @@ matchStar : (s =~ re) → (s =~ re *)
 matchStar {re = re} x = subst (_=~ re *) nil-right-neutral (MStarS x MStar0)
   where
   nil-right-neutral : s ++ [] ≡ s
-  nil-right-neutral = {!!}
-
-#+end_src
-
-* Бритва Хаттона
-Так называется тривиальный язык, в котором есть всего два вида выражений: константы и операция сложения.
-
-#+begin_src agda2
-
-data Exp : Type₀ where
-  Const : ℕ → Exp
-  _＋_  : Exp → Exp → Exp
+  nil-right-neutral {s = []} = refl _
+  nil-right-neutral {s = x ∷ s} = cong (x ∷_) nil-right-neutral
 
 #+end_src
