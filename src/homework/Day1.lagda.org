@@ -3,7 +3,11 @@
 module homework.Day1 where
 
 open import Prelude
-open import Day1
+
+open import Data.Bool using (false; true) renaming (Bool to 𝔹)
+open import Data.Empty using (⊥)
+open import Data.Nat using (ℕ; zero; suc)
+open import Relation.Nullary using (¬_)
 
 #+end_src
 
@@ -21,16 +25,16 @@ _xor_ = {!!}
 -- теорему/функцию/константу можно назвать "_", если вы не собираетесь её больше использовать
 -- это удобно, чтобы писать безымянные юнит-тесты
 _ : true &&' true ≡ true
-_ = refl _
+_ = refl
 
 _ : false &&' true ≡ false
-_ = refl _
+_ = refl
 
 _ : false xor true ≡ true
-_ = refl _
+_ = refl
 
 _ : true xor true ≡ false
-_ = refl _
+_ = refl
 
 #+end_src
 
@@ -42,13 +46,13 @@ _^_ : ℕ → ℕ → ℕ
 n ^ m = {!!}
 
 _ : 3 ^ 4 ≡ 81
-_ = refl 81
+_ = refl
 
 _! : ℕ → ℕ
 n ! = {!!}
 
 _ : 4 ! ≡ 24
-_ = refl 24
+_ = refl
 
 #+end_src
 
@@ -66,7 +70,7 @@ min : ℕ → ℕ → ℕ
 min = {!!}
 
 _ : min 5 3 ≡ 3
-_ = refl 3
+_ = refl
 
 #+end_src
 
@@ -81,19 +85,19 @@ id : {A : 𝓤₀} →
 id = {!!}
 
 _ : {A B : 𝓤₀} →
-    A → (B ⇒ A)
+    A → (B → A)
 _ = {!!}
 
 ⊥-is-false : ¬ ⊥
 ⊥-is-false = {!!}
 
 -- Как вы думаете, чего не хватает для полного доказательства?
-contra : {A B : 𝓤₀} →
-         (A ⇒ B) ⇔ (¬ B ⇒ ¬ A)
-contra = {!!}
+-- contra : {A B : 𝓤₀} →
+--          (A → B) ⇔ (¬ B ⇒ ¬ A)
+-- contra = {!!}
 
 not-both : {A : 𝓤₀} →
-           ¬ (A ∧ ¬ A)
+           ¬ (A × (¬ A))
 not-both = {!!}
 
 #+end_src
@@ -104,11 +108,11 @@ not-both = {!!}
 
 #+begin_src agda2
 
-map : {A B : Type₀} → (A → B) → List A → List B
-map f xs = {!!}
+-- map : {A B : Type₀} → (A → B) → List A → List B
+-- map f xs = {!!}
 
-_ : map (_+ 3) (1 ∷ 2 ∷ 3 ∷ []) ≡ 4 ∷ 5 ∷ 6 ∷ []
-_ = refl _
+-- _ : map (_+ 3) (1 ∷ 2 ∷ 3 ∷ []) ≡ 4 ∷ 5 ∷ 6 ∷ []
+-- _ = refl _
 
 #+end_src
 
@@ -118,15 +122,15 @@ _ = refl _
 
 #+begin_src agda2
 
-filter : {A : Type₀} (p : A → 𝔹) → List A → List A
-filter = {!!}
+-- filter : {A : Type₀} (p : A → 𝔹) → List A → List A
+-- filter = {!!}
 
-is-non-zero : ℕ → 𝔹
-is-non-zero zero    = false
-is-non-zero (suc _) = true
+-- is-non-zero : ℕ → 𝔹
+-- is-non-zero zero    = false
+-- is-non-zero (suc _) = true
 
-filter-example : filter is-non-zero (4 ∷ 3 ∷ 0 ∷ 1 ∷ 0 ∷ []) ≡ 4 ∷ 3 ∷ 1 ∷ []
-filter-example = refl _
+-- filter-example : filter is-non-zero (4 ∷ 3 ∷ 0 ∷ 1 ∷ 0 ∷ []) ≡ 4 ∷ 3 ∷ 1 ∷ []
+-- filter-example = refl
 
 #+end_src
 

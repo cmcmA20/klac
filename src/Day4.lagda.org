@@ -1,13 +1,15 @@
 * стандартные прокашливания
 #+begin_src agda2
 
-{-# OPTIONS --guardedness --safe #-}
+{-# OPTIONS --safe #-}
 module Day4 where
 
 open import Prelude
-open import Day1
-open import Day2
-open import Day3
+
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Function.Base using (_$_)
+open import Relation.Nullary using (¬_)
 
 #+end_src
 
@@ -18,7 +20,7 @@ open import Day3
 #+begin_src agda2
 
 -- nat-ind′ : {P : ℕ → Type₀} → P 0 → ((n : ℕ) → P n → P (suc n)) → (m : ℕ) → P m
-nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π n ꞉ ℕ , (P n ⇒ P (suc n))) → Π m ꞉ ℕ , P m
+nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π[ n ∈ ℕ ] (P n → P (suc n))) → Π[ m ∈ ℕ ] P m
 nat-ind p₀ pₙ zero    = p₀
 nat-ind p₀ pₙ (suc m) = pₙ m (nat-ind p₀ pₙ m)
 
@@ -26,7 +28,7 @@ nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
 nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
 
 cons-nat-rec-is-id : (m : ℕ) → nat-rec {ℕ} 0 suc m ≡ m
-cons-nat-rec-is-id zero = refl _
+cons-nat-rec-is-id zero = refl
 cons-nat-rec-is-id (suc m) = cong suc (cons-nat-rec-is-id m)
 
 -- foldr
@@ -37,17 +39,12 @@ list-rec z _⊕_ (x ∷ xs) = x ⊕ (list-rec z _⊕_ xs)
 map-as-list-rec : {A B : Type ℓ} (f : A → B) → List A → List B
 map-as-list-rec f xs = list-rec [] (λ x acc → f x ∷ acc) xs
 
--- the usual definition
-map : {A B : Type ℓ} (f : A → B) → List A → List B
-map _ []       = []
-map f (x ∷ xs) = f x ∷ map f xs
-
-same-map : {A B : Type ℓ} (f : A → B) (xs : List A) → map-as-list-rec f xs ≡ map f xs
-same-map f [] = refl []
+same-map : {A B : Type ℓ} (f : A → B) (xs : List A) → map-as-list-rec f xs ≡ Data.List.map f xs
+same-map f [] = refl
 same-map f (x ∷ xs) = cong (f x ∷_) (same-map f xs)
 
-cons-list-rec-is-id : {A : Type ℓ} (xs : List A) → list-rec [] (_∷_) xs ≡ xs
-cons-list-rec-is-id = {!!}
+-- cons-list-rec-is-id : {A : Type ℓ} (xs : List A) → list-rec [] (_∷_) xs ≡ xs
+-- cons-list-rec-is-id = {!!}
 
 #+end_src
 
@@ -55,20 +52,15 @@ cons-list-rec-is-id = {!!}
 
 #+begin_src agda2
 
--- you'll need this
-_$_ : {A : Type ℓ} {B : A → Type ℓ} → ((a : A) → B a) → (x : A) → B x
-f $ x = f x
-infixr 0 _$_
-
-suc-inj : (a b : ℕ) → suc a ≡ suc b → a ≡ b
-suc-inj a _ (refl _) = refl _
+suc-inj : (x y : ℕ) → suc x ≡ suc y → x ≡ y
+suc-inj a _ refl = refl
 
 suc-plus-comm : (a b : ℕ) → a + suc b ≡ suc (a + b)
-suc-plus-comm zero _ = refl _
+suc-plus-comm zero _ = refl
 suc-plus-comm (suc a) b = cong suc (suc-plus-comm _ _)
 
 plus-comm : (a b : ℕ) → a + b ≡ b + a
-plus-comm zero zero = refl _
+plus-comm zero zero = refl
 plus-comm zero (suc b) = cong suc (plus-comm _ b)
 plus-comm (suc a) zero = cong suc (plus-comm a _)
 plus-comm (suc a) (suc b) = cong suc $
@@ -89,7 +81,7 @@ plus-comm (suc a) (suc b) = cong suc $
 #+begin_src agda2
 
 invert-beginner : (a b : ℕ) (r : a + a ≡ b + b) → a ≡ b
-invert-beginner zero zero _ = refl _
+invert-beginner zero zero _ = refl
 invert-beginner (suc a) (suc b) r =
   let
     r₂ = suc-inj _ _ r
@@ -105,7 +97,7 @@ invert-beginner (suc a) (suc b) r =
 #+begin_src agda2
 
 invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-cylon zero zero _ = refl _
+invert-cylon zero zero _ = refl
 invert-cylon (suc a) (suc b) r =
   cong suc $ invert-beginner _ _ $ suc-inj _ _ $ plus-comm _ a ∙ suc-inj _ _ r ∙ plus-comm b _
   where
@@ -119,7 +111,7 @@ invert-cylon (suc a) (suc b) r =
 #+begin_src agda2
 
 invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
-invert-reasoning zero zero _ = refl _
+invert-reasoning zero zero _ = refl
 invert-reasoning (suc a) (suc b) r = cong suc $ invert-reasoning _ _ $ suc-inj _ _ $
   begin
     suc (a + a)
@@ -189,7 +181,7 @@ matchStar : (s =~ re) → (s =~ re *)
 matchStar {re = re} x = subst (_=~ re *) nil-right-neutral (MStarS x MStar0)
   where
   nil-right-neutral : s ++ [] ≡ s
-  nil-right-neutral {s = []} = refl _
+  nil-right-neutral {s = []} = refl
   nil-right-neutral {s = x ∷ s} = cong (x ∷_) nil-right-neutral
 
 #+end_src

@@ -4,9 +4,10 @@
 module homework.Day3 where
 
 open import Prelude
-open import Day1
-open import Day2
-open import Day3
+open import Day3 using (Stream; _!_; _>ᵢ_)
+
+open import Data.Nat using (ℕ; zero; suc)
+open import Relation.Nullary using (Dec)
 
 #+end_src
 
@@ -14,11 +15,11 @@ open import Day3
 
 #+begin_src agda2
 
->ᵢ⇔> : (m n : ℕ) → (m >ᵢ n) ⇔ (m > n)
->ᵢ⇔> = {!!}
+-- >ᵢ⇔> : (m n : ℕ) → (m >ᵢ n) ↔ (m > n)
+-- >ᵢ⇔> = {!!}
 
->ᵢ-dec₂ : (m n : ℕ) → Dec (m >ᵢ n)
->ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (dec′-to-dec (>-dec m n))
+-- >ᵢ-dec₂ : (m n : ℕ) → Dec (m >ᵢ n)
+-- >ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (dec′-to-dec (>-dec m n))
 
 #+end_src
 

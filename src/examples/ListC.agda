@@ -2,7 +2,10 @@
 module examples.ListC where
 
 open import Prelude
-open import Day1
+
+open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
+open import Data.List using (List; []; _∷_)
+open import Data.Nat using (ℕ; zero; suc)
 
 module Helpers where
 
@@ -14,13 +17,9 @@ module Helpers where
       from-to : {y : B} → to (from y) ≡ y
 
   Σ-≡ : {A : Type₀} {B : A → Type₀} {P Q : Σ a ꞉ A , B a} →
-        (basePath : fst P ≡ fst Q) → (liftedPath : subst basePath (snd P) ≡ snd Q) →
+        (basePath : fst P ≡ fst Q) → (liftedPath : subst B basePath (snd P) ≡ snd Q) →
         P ≡ Q
-  Σ-≡ (refl _) (refl _) = refl _
-
-  uncurry : {A C : Type₀} {B : A → Type₀} →
-          ((a : A) → B a → C) → (Σ A B) → C
-  uncurry f (a , b) = f a b
+  Σ-≡ refl refl = refl
 
 open Helpers
 
@@ -68,11 +67,11 @@ module _ {fun-ext : {A B : Type₀} {f g : A → B} → ((x : A) → f x ≡ g x
 
       to-from : {A : Type₀}
                 (xs : List A) → uncurry from (to xs) ≡ xs
-      to-from []       = refl []
+      to-from []       = refl
       to-from (x ∷ xs) with to xs | to-from xs
-      ... | n , lookup | refl _ = cong (x ∷_) (refl _)
+      ... | n , lookup | refl = cong (x ∷_) refl
 
       from-to : {A : Type₀}
                 (n : ℕ) (lookup : Fin n → A) → to (uncurry from (n , lookup)) ≡ (n , lookup)
       from-to zero    _ = cong (0 ,_) (fun-ext λ ())
-      from-to (suc n) lookup rewrite from-to n (λ i → lookup (fsuc i)) = Σ-≡ (cong suc (refl _)) (fun-ext λ { fzero → refl _ ; (fsuc _) → refl _ })
+      from-to (suc n) lookup rewrite from-to n (λ i → lookup (fsuc i)) = Σ-≡ (cong suc refl) (fun-ext λ { fzero → refl ; (fsuc _) → refl })

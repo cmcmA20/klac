@@ -5,8 +5,13 @@
 module Day3 where
 
 open import Prelude
-open import Day1
-open import Day2
+open import Day2 using (Dec′)
+
+open import Data.Bool using (false; true; if_then_else_)
+  renaming (Bool to 𝔹)
+open import Data.Nat using (ℕ; zero; suc; _*_)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Relation.Nullary using (Dec; yes; no)
 
 #+end_src
 
@@ -17,23 +22,9 @@ open import Day2
 
 #+begin_src agda2
 
-data Reflects (P : Set ℓ) : 𝔹 → Type ℓ where
-  ofʸ : ( p :   P) → Reflects P true
-  ofⁿ : (¬p : ¬ P) → Reflects P false
-
-record Dec (P : Type ℓ) : Type ℓ where
-  constructor _because_
-  field
-    does : 𝔹
-    proof : Reflects P does
-open Dec public
-
-pattern yes p = true  because ofʸ  p
-pattern no ¬p = false because ofⁿ ¬p
-
 dec′-to-dec : {A : Type ℓ} → Dec′ A → Dec A
-dec′-to-dec (inj₁ x) = yes x
-dec′-to-dec (inj₂ x) = no x
+dec′-to-dec (inj₁ a) = yes a
+dec′-to-dec (inj₂ ¬a) = no λ x → ¬a x
 
 forget-evidence : {A : Type ℓ} → Dec A → 𝔹
 forget-evidence (yes _) = true
@@ -43,7 +34,7 @@ from-boolean-reflection : {A : Type ℓ} (d : Dec A) → forget-evidence d ≡ t
 from-boolean-reflection (yes a) _ = a
 
 to-boolean-reflection : {A : Type ℓ} (d : Dec A) → A → forget-evidence d ≡ true
-to-boolean-reflection (yes _)  _ = refl _
+to-boolean-reflection (yes _)  _ = refl
 to-boolean-reflection (no ¬p) x with ¬p x
 ... | ()
 
@@ -74,14 +65,15 @@ javascriptIsFun n with n >ᵣ 0
 ... | true  = n * n
 ... | false = false
 
-⇔-preserves-Dec : {P Q : Type ℓ} → (P ⇔ Q) → (Dec P ⇔ Dec Q)
-fst (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (p⇒q x)
-fst (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no λ z → ¬x (q⇒p z)
-snd (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (q⇒p x)
-snd (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no (λ z → ¬x (p⇒q z))
+-- too lazy to fix this
+-- ⇔-preserves-Dec : {P Q : Type ℓ} → (P ⇔ Q) → (Dec P ⇔ Dec Q)
+-- proj₁ (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (p⇒q x)
+-- proj₁ (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no λ z → ¬x (q⇒p z)
+-- proj₂ (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (q⇒p x)
+-- proj₂ (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no (λ z → ¬x (p⇒q z))
 
 >ᵢ-prop : (m n : ℕ) → isProp (m >ᵢ n)
->ᵢ-prop (suc m) zero    sz     sz     = refl _
+>ᵢ-prop (suc m) zero    sz     sz     = refl
 >ᵢ-prop (suc m) (suc n) (ss x) (ss y) = cong ss (>ᵢ-prop m n x y)
 
 #+end_src
@@ -114,13 +106,13 @@ record Stream (A : Type ℓ) : Type ℓ where
   coinductive
   constructor _∷_
   field
-    head : A
-    tail : Stream A
+    h : A
+    t : Stream A
 open Stream public
 
 -- из потока всегда можно взять элемент, в отличие от списка
 _!_ : {A : Type ℓ} → Stream A → ℕ → A
-s ! zero  = head s
-s ! suc i = tail s ! i
+s ! zero  = h s
+s ! suc i = t s ! i
 
 #+end_src

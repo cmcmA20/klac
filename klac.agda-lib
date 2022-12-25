@@ -1,4 +1,4 @@
 name: klac
 include:
---  agda-stdlib/src/
+  agda-stdlib/src/
   src/

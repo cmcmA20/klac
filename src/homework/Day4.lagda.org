@@ -4,10 +4,12 @@
 module homework.Day4 where
 
 open import Prelude
-open import Day1
-open import Day2
-open import Day3
 open import Day4
+
+open import Data.Bool using (false; true) renaming (Bool to 𝔹; _∧_ to _&&_; _∨_ to _||_)
+open import Data.List using (List; []; _∷_)
+open import Data.Nat using (ℕ; zero; suc; _+_)
+open import Relation.Nullary using (Reflects; yes; no)
 
 #+end_src
 

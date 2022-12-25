@@ -2,10 +2,9 @@
 module examples.BoolNat where
 
 open import Prelude
-open import Day1
 
-_≢_ : {ℓ : Level} {A : Type ℓ} → A → A → Type _
-P ≢ Q = ¬ (P ≡ Q)
+open import Data.Bool using (false; true) renaming (Bool to 𝔹)
+open import Data.Nat using (ℕ; zero; suc)
 
 Injective : {ℓ : Level} {A B : Type ℓ} → (A → B) → Type ℓ
 Injective {_} {A} {B} f = Σ f⁻¹ ꞉ (B → A) , Π x ꞉ A , (f⁻¹ (f x) ≡ x)
@@ -14,18 +13,18 @@ _↪_ : Type₀ → Type₀ → Type _
 A ↪ B = Σ f ꞉ (A → B) , Injective f
 
 to : ℕ ↪ ℕ
-fst to n = n
-fst (snd to) n = n
-snd (snd to) n = refl _
+proj₁ to n = n
+proj₁ (proj₂ to) n = n
+proj₂ (proj₂ to) n = refl
 
 suc-not-zero : {n : ℕ} → (suc n) ≢ 0
 suc-not-zero = λ ()
 
 suc-inj : {m n : ℕ} → suc m ≡ suc n → m ≡ n
-suc-inj (refl _) = refl _
+suc-inj refl = refl
 
 ℕ-is-not-Bool : ℕ ≢ 𝔹
-ℕ-is-not-Bool prf with subst {B = ℕ ↪_} prf to
+ℕ-is-not-Bool prf with subst (ℕ ↪_) prf to
 ... | from , to′ , q with from 0 | from 1 | from 2 | q 0 | q 1 | q 2
 ... | false | false | _     | q₀ | q₁ | _  = suc-not-zero (trans (sym q₁) q₀)
 ... | false | true  | false | q₀ | _  | q₂ = suc-not-zero (trans (sym q₂) q₀)

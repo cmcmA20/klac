@@ -43,8 +43,13 @@ data ИМЯ_ТИПА : Type₀ where
 
 -- Type\_0
 -- \bB
-data 𝔹 : Type₀ where
-  false true : 𝔹
+-- data 𝔹 : Type₀ where
+--   false true : 𝔹
+
+-- open import Data.Bool
+--   using (true; false; if_then_else_)
+--   renaming (Bool to 𝔹; _∧_ to _&&_; _∨_ to _||_)
+--   public
 
 #+end_src
 *Конструкторы* это способы создания элементов типа.
@@ -58,10 +63,12 @@ data 𝔹 : Type₀ where
 
 -- \bN
 -- \->
-data ℕ : Type₀ where
-  zero :     ℕ
-  suc  : ℕ → ℕ
-{-# BUILTIN NATURAL ℕ #-} -- чтобы можно было использовать литералы 0, 1 etc
+-- data ℕ : Type₀ where
+--   zero :     ℕ
+--   suc  : ℕ → ℕ
+-- {-# BUILTIN NATURAL ℕ #-} -- чтобы можно было использовать литералы 0, 1 etc
+
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
 
 #+end_src
 У натуральных чисел тоже два конструктора, но их сигнатуры чуть сложнее.
@@ -101,10 +108,10 @@ data ℕ : Type₀ where
 Давайте определим некоторые арифметические и логические функции:
 #+begin_src agda2
 
-_+_ : ℕ → ℕ → ℕ
-zero  + y = y
-suc x + y = suc (x + y)
-infixr 5 _+_ -- инфиксный правоассоциативный оператор с приоритетом 5
+-- _+_ : ℕ → ℕ → ℕ
+-- zero  + y = y
+-- suc x + y = suc (x + y)
+-- infixr 5 _+_ -- инфиксный правоассоциативный оператор с приоритетом 5
 
 #+end_src
 
@@ -133,38 +140,40 @@ infixr 5 _+_ -- инфиксный правоассоциативный опер
 
 #+begin_src agda2
 
-_*_ : ℕ → ℕ → ℕ
-zero  * _ = zero
-suc x * y = y + x * y
-infixr 6 _*_
+-- _*_ : ℕ → ℕ → ℕ
+-- zero  * _ = zero
+-- suc x * y = y + x * y
+-- infixr 6 _*_
 
-not : 𝔹 → 𝔹
-not false = true
-not true  = false
+-- not : 𝔹 → 𝔹
+-- not false = true
+-- not true  = false
 
-_&&_ : (x : 𝔹) → (y : 𝔹) → 𝔹
-false && _ = false
-true  && y = y
-infixr 5 _&&_
+-- _&&_ : (x : 𝔹) → (y : 𝔹) → 𝔹
+-- false && _ = false
+-- true  && y = y
+-- infixr 5 _&&_
 
-_||_ : (x : 𝔹) (y : 𝔹) → 𝔹
-false || y = y
-true  || _ = true
-infixr 4 _||_
+-- _||_ : (x : 𝔹) (y : 𝔹) → 𝔹
+-- false || y = y
+-- true  || _ = true
+-- infixr 4 _||_
 
-if_then_else_ : {A : Type ℓ} → (condition : 𝔹) → A → A → A
-if false then _ else y = y
-if true  then x else _ = x
+-- if_then_else_ : {A : Type ℓ} → (condition : 𝔹) → A → A → A
+-- if false then _ else y = y
+-- if true  then x else _ = x
 
 #+end_src
 
 Типы данных могут иметь параметры, например можно объявить полиморфные списки.
 #+begin_src agda2
 
-data List (A : Type ℓ) : Type ℓ where
-  []  :              List A
-  _∷_ : A → List A → List A
-infixr 4 _∷_
+-- data List (A : Type ℓ) : Type ℓ where
+--   []  :              List A
+--   _∷_ : A → List A → List A
+-- infixr 4 _∷_
+
+open import Data.List using (List; []; _∷_)
 
 #+end_src
 
@@ -194,14 +203,14 @@ infixr 4 _∷_
 
 #+begin_src agda2
 
-length : {A : Type ℓ} → List A → ℕ
-length []       = 0
-length (_ ∷ xs) = suc (length xs)
+-- length : {A : Type ℓ} → List A → ℕ
+-- length []       = 0
+-- length (_ ∷ xs) = suc (length xs)
 
-_++_ : {A : Type ℓ} → (xs ys : List A) → List A
-[]       ++ ys = ys
-(x ∷ xs) ++ ys = x ∷ xs ++ ys
-infixr 7 _++_
+-- _++_ : {A : Type ℓ} → (xs ys : List A) → List A
+-- []       ++ ys = ys
+-- (x ∷ xs) ++ ys = x ∷ xs ++ ys
+-- infixr 7 _++_
 
 -- headₗ : {A : Type₀} → List A → A
 -- headₗ [] = {!!} -- такая функция невозможна
@@ -230,9 +239,12 @@ tailₗ (_ ∷ xs) = xs
 для каждого элемента ℕ: Vec A 0, Vec A 1, Vec A 2 ...
 #+begin_src agda2
 
-data Vec (A : Type ℓ) : ℕ → Type ℓ where
-  []  :                         Vec A 0
-  _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
+-- data Vec (A : Type ℓ) : ℕ → Type ℓ where
+--   []  :                         Vec A 0
+--   _∷_ : {n : ℕ} → A → Vec A n → Vec A (suc n)
+
+open import Data.Vec
+  using (Vec; []; _∷_)
 
 headᵥ : {A : Type ℓ} {n : ℕ} → Vec A (suc n) → A
 headᵥ (x ∷ _) = x
@@ -274,9 +286,13 @@ tailᵥ (_ ∷ xs) = xs
 Научимся корректно доставать элементы по индексу из векторов, для этого сначала создадим нужный тип для индексов:
 #+begin_src agda2
 
-data Fin : ℕ → Type₀ where
-  fzero : {n : ℕ}         → Fin (suc n)
-  fsuc  : {n : ℕ} → Fin n → Fin (suc n)
+-- data Fin : ℕ → Type₀ where
+--   fzero : {n : ℕ}         → Fin (suc n)
+--   fsuc  : {n : ℕ} → Fin n → Fin (suc n)
+
+open import Data.Fin
+  using (Fin)
+  renaming (zero to fzero; suc to fsuc)
 
 finEx₁ : Fin 2
 finEx₁ = fzero
@@ -304,7 +320,7 @@ lookupᵥ (fsuc index) (_ ∷ xs) = lookupᵥ index xs
 -- {-# BUILTIN EQUALITY _≡_ #-}
 
 _ : 6 + (7 * 5) ≡ 41
-_ = refl 41
+_ = refl
 
 #+end_src
 
@@ -333,34 +349,52 @@ _ = refl 41
 Давайте посмотрим на ложь, истину, "и", "или", "не", импликацию, кванторы "для всех" и "существует"
 #+begin_src agda2
 
-data ⊥ : Type₀ where
+-- data ⊥ : Type₀ where
 
-ex-falso-quodlibet : {A : Type ℓ} → ⊥ → A
-ex-falso-quodlibet ()
+-- ex-falso-quodlibet : {A : Type ℓ} → ⊥ → A
+-- ex-falso-quodlibet ()
 
-record ⊤ : Type₀ where
-  constructor tt
+-- open import Data.Empty
+--   using (⊥; ⊥-elim)
+
+-- record ⊤ : Type₀ where
+--   constructor tt
 
 -- data ⊤ : Type₀ where
 --   tt : ⊤
 
-_∧_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
-A ∧ B = A × B
-infixr 6 _∧_
+open import Data.Unit
+  using (⊤; tt)
 
-data _∨_ {ℓ} (A B : Type ℓ) : Type ℓ where
-  inj₁ : A → A ∨ B
-  inj₂ : B → A ∨ B
-infixr 5 _∨_
+-- _∧_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
+-- A ∧ B = A × B
+-- infixr 6 _∧_
 
-¬_ : {ℓ : Level} → Type ℓ → Type ℓ
-¬ A = A → ⊥
+open import Data.Product
+  using ()
+  renaming (_×_ to _∧_)
 
-_⇒_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
-P ⇒ Q = P → Q
-infixr 3 _⇒_
+-- data _∨_ {ℓ} (A B : Type ℓ) : Type ℓ where
+--   inj₁ : A → A ∨ B
+--   inj₂ : B → A ∨ B
+-- infixr 5 _∨_
 
-_⇔_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
-P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
+open import Data.Sum using () renaming (_⊎_ to _∨_)
+
+-- ¬_ : {ℓ : Level} → Type ℓ → Type ℓ
+-- ¬ A = A → ⊥
+
+open import Relation.Nullary using (¬_)
+
+-- _⇒_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
+-- P ⇒ Q = P → Q
+-- infixr 3 _⇒_
+
+open import Relation.Binary using (_⇒_)
+
+-- _⇔_ : {ℓ₁ ℓ₂ : Level} → Type ℓ₁ → Type ℓ₂ → Type _
+-- P ⇔ Q = (P ⇒ Q) ∧ (Q ⇒ P)
+
+open import Relation.Binary using (_⇔_)
 
 #+end_src

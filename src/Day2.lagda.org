@@ -5,7 +5,12 @@
 module Day2 where
 
 open import Prelude
-open import Day1
+
+open import Data.Empty using (⊥; ⊥-elim)
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Unit using (⊤; tt)
+open import Relation.Nullary using (¬_)
 
 #+end_src
 
@@ -42,9 +47,8 @@ zero  > n     = ⊥
 suc _ > zero  = ⊤
 suc m > suc n = m > n
 
--- arith-quantifier-example′ : Σ ℕ λ m → (n : ℕ) → m > n → ⊥
 -- \:4
-arith-quantifier-example : ¬ (Σ m ꞉ ℕ , Π n ꞉ ℕ , (m > n) )
+arith-quantifier-example : ¬ (Σ[ m ∈ ℕ ] Π[ n ∈ ℕ ] (m > n))
 arith-quantifier-example (m , f) = lemma m (f m)
   where
   lemma : (k : ℕ) → k > k → ⊥
@@ -63,16 +67,16 @@ m ≤ n = ¬ (m > n)
 id : {A : Type₀} → A → A
 id x = x
 
-th₁ : Π m ꞉ ℕ , Π n ꞉ ℕ , ((m > n) ∨ (m ≤ n))
-th₁ zero    _       = inj₂ id
+th₁ : Π[ m ∈ ℕ ] Π[ n ∈ ℕ ] ((m > n) ⊎ (m ≤ n))
+th₁ zero _ = inj₂ id
 th₁ (suc m) zero    = inj₁ tt
 th₁ (suc m) (suc n) = th₁ m n
 
 Dec′ : Type ℓ → Type _
-Dec′ A = A ∨ ¬ A
+Dec′ A = A ⊎ (¬ A)
 
->-dec : Π m ꞉ ℕ , Π n ꞉ ℕ , Dec′ (m > n)
->-dec = th₁
+>-dec : Π[ m ∈ ℕ ] Π[ n ∈ ℕ ] Dec′ (m > n)
+>-dec = th₁ 
 
 -- "Любое утверждение разрешимо", такое доказать нельзя
 -- LEM : Π A ꞉ Type₀ , Dec A
