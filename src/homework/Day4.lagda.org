@@ -24,9 +24,9 @@ reNotEmpty : {A : Type ℓ} → RegExp A → 𝔹
 reNotEmpty ø = false
 reNotEmpty ε = true
 reNotEmpty (# _) = true
-reNotEmpty (re₁ <> re₂) = reNotEmpty re₁ && reNotEmpty re₂
+reNotEmpty (re₁ ∙ re₂) = reNotEmpty re₁ && reNotEmpty re₂
 reNotEmpty (re₁ ∣ re₂) = reNotEmpty re₁ || reNotEmpty re₂
-reNotEmpty (_ *) = true
+reNotEmpty (_ +) = true
 
 reNE-correct : {A : Type ℓ} {s : List A} {re : RegExp A} →
                Reflects (s =~ re) (reNotEmpty re)
@@ -45,9 +45,9 @@ pumpingConstant : {A : Type ℓ} → RegExp A → ℕ
 pumpingConstant ø = 0
 pumpingConstant ε = 1
 pumpingConstant (# _) = 2
-pumpingConstant (re₁ <> re₂) = pumpingConstant re₁ + pumpingConstant re₂
+pumpingConstant (re₁ ∙ re₂) = pumpingConstant re₁ + pumpingConstant re₂
 pumpingConstant (re₁ ∣ re₂) = pumpingConstant re₁ + pumpingConstant re₂
-pumpingConstant (_ *) = 1
+pumpingConstant (_ +) = 1
 
 -- pumpingLemma : (s =~ re) →
 --                (pumpingConstant re ≤ length s) →

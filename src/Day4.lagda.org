@@ -132,11 +132,13 @@ invert-reasoning (suc a) (suc b) r = cong suc $ invert-reasoning _ _ $ suc-inj _
 data RegExp (A : Type ℓ) : Type ℓ where
   ø    :                       RegExp A
   ε    :                       RegExp A
-  #_   : A        →            RegExp A
-  _<>_ : RegExp A → RegExp A → RegExp A
+  ‵_   : A        →            RegExp A
+  _∙_ : RegExp A → RegExp A → RegExp A
   _∣_  : RegExp A → RegExp A → RegExp A
-  _*   : RegExp A →            RegExp A
-infixr 5 _<>_
+  _+   : RegExp A →            RegExp A
+infixr 3 _∙_
+infixr 3 _∣_
+infix  4 _+
 
 private
   variable
@@ -145,43 +147,44 @@ private
     s s₁ s₂ : List A
     re re₁ re₂ : RegExp A
 
-infix 0 _=~_
+_* : RegExp A → RegExp A
+re * = ε ∣ re +
+infix 4 _*
+
+infix 1 _=~_
 data _=~_ {A : Type ℓ} : List A → RegExp A → Type ℓ where
   MEmpty  : []     =~ ε
-  MChar   : x ∷ [] =~ # x
+  MChar   : x ∷ [] =~ ‵ x
   MApp    : s₁ =~ re₁ →
             s₂ =~ re₂ →
-            s₁ ++ s₂ =~ re₁ <> re₂
+            s₁ ++ s₂ =~ re₁ ∙ re₂
   MUnionL : s₁ =~ re₁ →
             s₁ =~ re₁ ∣ re₂
   MUnionR : s₂ =~ re₂ →
             s₂ =~ re₁ ∣ re₂
-  MStar0  : [] =~ re *
-  MStarS  : s₁ =~ re →
-            s₂ =~ re * →
-            s₁ ++ s₂ =~ re *
+  MPlus0  : s =~ re →
+            s =~ re +
+  MPlusS  : s₁ =~ re →
+            s₂ =~ re + →
+            s₁ ++ s₂ =~ re +
 
-ex₁ : 1 ∷ [] =~ # 1
+ex₁ : 1 ∷ [] =~ ‵ 1
 ex₁ = MChar
 
-ex₂ : 1 ∷ 2 ∷ [] =~ # 1 <> # 2
+ex₂ : 1 ∷ 2 ∷ [] =~ ‵ 1 ∙ ‵ 2
 ex₂ = MApp MChar MChar
 
-ex₃ : ¬ (1 ∷ 2 ∷ [] =~ # 1)
+ex₃ : ¬ (1 ∷ 2 ∷ [] =~ ‵ 1)
 ex₃ ()
 
 reList : List A → RegExp A
 reList []       = ε
-reList (x ∷ xs) = # x <> reList xs
+reList (x ∷ xs) = ‵ x ∙ reList xs
 
 ex₄ : 1 ∷ 2 ∷ 3 ∷ [] =~ reList (1 ∷ 2 ∷ 3 ∷ [])
 ex₄ = MApp MChar (MApp MChar (MApp MChar MEmpty))
 
 matchStar : (s =~ re) → (s =~ re *)
-matchStar {re = re} x = subst (_=~ re *) nil-right-neutral (MStarS x MStar0)
-  where
-  nil-right-neutral : s ++ [] ≡ s
-  nil-right-neutral {s = []} = refl
-  nil-right-neutral {s = x ∷ s} = cong (x ∷_) nil-right-neutral
+matchStar x = MUnionR (MPlus0 x)
 
 #+end_src
