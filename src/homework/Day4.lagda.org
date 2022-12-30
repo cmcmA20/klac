@@ -84,6 +84,7 @@ validateᵢ = {!!}
 
 * Задача 3 (⋆⋆⋆⋆⋆)
 Можно ли напрямую определить отсортированные списки как индуктивный тип?
+Для вдохновения почитайте [[https://personal.cis.strath.ac.uk/conor.mcbride/Pivotal.pdf][How to keep your neighbours in order]].
 
 #+begin_src agda2
 

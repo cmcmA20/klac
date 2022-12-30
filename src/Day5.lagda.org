@@ -6,20 +6,69 @@ module Day5 where
 
 open import Prelude
 
+open import Data.Bool using (Bool; false; true; T)
 open import Data.Char using (Char)
-open import Data.Integer.Base using (ℤ)
-open import Data.Integer.Show using () renaming (show to show-ℤ)
 open import Data.List using (List; []; _∷_)
 open import Data.Maybe using (Maybe; just; nothing)
-open import Data.Nat.Base using (ℕ; suc; zero)
-open import Data.Nat.Show using (readMaybe) renaming (show to show-ℕ)
+open import Data.Nat.Base using (ℕ; suc; zero; _≤ᵇ_; _≤_; z≤n; s≤s)
+open import Data.Nat.Properties using (≤ᵇ⇒≤)
+open import Data.Nat.Show using () renaming (show to show-ℕ)
 open import Data.String.Base using (String; _++_; toList; fromList; length)
-open import Data.Unit using (⊤; tt)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Function.Base using (_$_)
 
 open import IO
 
 #+end_src
+
+* Интуиция о путях
+Вернитесь на ход [[./Day4.lagda.org][назад]], посмотрите на equational reasoning.
+
+* Automatics revisited
+Первая рудиментарная автоматика, с которой сталкиваются изучающие агду, это неявные аргументы.
+Они решаются унификатором, и повлиять на их разрешение пользователь никак не может, не считая
+явную передачу такого аргумента, which defeats their purpose.
+Про [[https://agda.readthedocs.io/en/v2.6.2.2.20221128/language/implicit-arguments.html][implicit arguments]] есть [[https://proofassistants.stackexchange.com/questions/1875/uses-of-first-class-implicit-function-types][хороший вопрос от Майка Шульмана]].
+
+В агде есть ещё [[https://agda.readthedocs.io/en/v2.6.2.2.20221128/language/instance-arguments.html][instance arguments]], это неявные аргументы, но решаются они другим алгоритмом.
+С помощью этого механизма можно эмулировать тайпклассы, как в хаскелле и создавать свои стратегии
+доказательств.
+
+#+begin_src agda2
+
+ex₁ : 2 ≤ 4
+ex₁ = {!!}
+
+ex₂ : 200 ≤ 2004
+ex₂ = {!!}
+
+
+
+
+
+
+
+
+
+
+
+
+-- this example is a courtesy of Jesper Cockx
+
+it : {A : Type ℓ} → ⦃ x : A ⦄ → A
+it ⦃ x ⦄ = x
+
+instance
+  ≤-dec′ : {m n : ℕ} {p : T (m ≤ᵇ n)} → m ≤ n
+  ≤-dec′ {p = p} = ≤ᵇ⇒≤ _ _ p
+
+ex₃ : 300 ≤ 32768
+ex₃ = {!!}
+
+#+end_src
+[[https://jesper.sikanda.be/posts/formalize-all-the-things.html][Статья Джеспера]], где это используется.
+Покажи [[./homework/Day4.lagda.org][домашнюю работу]], где этот механизм используется по-другому.
+
 
 * type safe printf, variadic functions
 С помощью завтипов можно делать функции, у которых количество аргументов заранее неизвестно.
@@ -112,51 +161,5 @@ _ : printf "hello, my name is %s and I'm %u years old"
     420
     ≡ "hello, my name is Paul and I'm 420 years old"
 _ = refl
-
-#+end_src
-
-Готовая программа, использующая такой ~printf~
-
-#+begin_src agda2
-
-fold-x : List Type₀ → Type₀
-fold-x [] = ⊤
-fold-x (t ∷ ts) = t × fold-x ts
-
-⟦_⟧ᶜ : FmtString → Type₀
-⟦ fs ⟧ᶜ = fold-x (types fs) → String
-
--- A₀ → A₁ → A₂ → ⋯ → Aₙ → R
--- becomes
--- A₀ × A₁ × A₂ × ⋯ × Aₙ → R
-curryₙ : (fs : FmtString) → ⟦ fs ⟧ → ⟦ fs ⟧ᶜ
-curryₙ [] s _ = s
-curryₙ (verbatim _ ∷ fs) = curryₙ fs
-curryₙ (%u         ∷ fs) g (n , ts) = curryₙ fs (g n) ts
-curryₙ (%s         ∷ fs) g (s , ts) = curryₙ fs (g s) ts
-
-getPrintfArgs : (fs : FmtString) → IO (fold-x (types fs))
-getPrintfArgs [] = pure tt
-getPrintfArgs (%u ∷ fs) = do
-  n ← untilJust do
-    putStrLn "Enter a natural number"
-    s ← getLine
-    pure $ readMaybe 10 s
-  rest ← getPrintfArgs fs
-  pure (n , rest)
-getPrintfArgs (%s ∷ fs) = do
-  putStrLn "Enter a string"
-  s ← getLine
-  rest ← getPrintfArgs fs
-  pure (s , rest)
-getPrintfArgs (verbatim _ ∷ fs) = getPrintfArgs fs
-
-main : Main
-main = run do
-  putStrLn "Enter a format string"
-  s ← getLine
-  let f = toFmtString s
-  as ← getPrintfArgs f
-  putStrLn $ curryₙ f (printf s) as
 
 #+end_src
