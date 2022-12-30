@@ -6,8 +6,13 @@ open import Prelude
 
 open import Data.Bool using (false; true) renaming (Bool to 𝔹)
 open import Data.Empty using (⊥)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Nat using (ℕ; zero; suc; _*_; _+_)
 open import Relation.Nullary using (¬_)
+
+open import Data.List using (List; _∷_; [])
+
+_⇔_ : Type ℓ → Type ℓ → Type ℓ
+A ⇔ B = (A → B) × (B → A)
 
 #+end_src
 
@@ -92,9 +97,9 @@ _ = {!!}
 ⊥-is-false = {!!}
 
 -- Как вы думаете, чего не хватает для полного доказательства?
--- contra : {A B : 𝓤₀} →
---          (A → B) ⇔ (¬ B ⇒ ¬ A)
--- contra = {!!}
+contra : {A B : _} →
+         (A → B) ⇔ (¬ B → ¬ A)
+contra = {!!}
 
 not-both : {A : 𝓤₀} →
            ¬ (A × (¬ A))
@@ -108,11 +113,11 @@ not-both = {!!}
 
 #+begin_src agda2
 
--- map : {A B : Type₀} → (A → B) → List A → List B
--- map f xs = {!!}
+mymap : {A B : Type₀} → (A → B) → List A → List B
+mymap f xs = {!!}
 
--- _ : map (_+ 3) (1 ∷ 2 ∷ 3 ∷ []) ≡ 4 ∷ 5 ∷ 6 ∷ []
--- _ = refl _
+_ : mymap (_+ 3) (1 ∷ 2 ∷ 3 ∷ []) ≡ 4 ∷ 5 ∷ 6 ∷ []
+_ = refl
 
 #+end_src
 
