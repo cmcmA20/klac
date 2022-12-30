@@ -7,51 +7,133 @@ open import Prelude
 open import Day4
 
 open import Data.Bool using (false; true) renaming (Bool to 𝔹; _∧_ to _&&_; _∨_ to _||_)
-open import Data.List using (List; []; _∷_)
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Relation.Nullary using (Reflects; yes; no)
+open import Data.List using (List; []; _∷_; _++_; length)
+open import Data.List.Membership.Propositional using (_∈_)
+open import Data.List.Relation.Unary.All using (All)
+open import Data.List.Relation.Unary.Any using (here; there)
+open import Data.Nat using (ℕ; zero; suc; _+_) renaming (_≤_ to _≤ₙ_)
+open import Relation.Binary using (Rel; IsPartialOrder)
+open import Relation.Nullary using (¬_; Reflects; yes; no)
 
 #+end_src
 
 * Задача 1 (⋆⋆)
+Предполагается, что вы знакомы с понятием /[[https://en.wikipedia.org/wiki/Partially_ordered_set][частичного порядка]]/. 
+Определите /неубывающие (отсортированные) списки/.
+
+#+begin_src agda2
+
+record PartialOrder (A : Type ℓ) : Type (suc-ℓ ℓ) where
+  field
+    _≤_ : Rel A ℓ
+    ipo : IsPartialOrder _≡_ _≤_
+open PartialOrder ⦃ ... ⦄
+
+-- возвращает все следующие за `t` элементы
+nextElems : {A : Type ℓ}
+            {t : A} {xs : List A}
+            (p : t ∈ xs) → List A
+nextElems {xs = _ ∷ xs′} (here  _) = xs′
+nextElems {xs = _ ∷ _  } (there p) = nextElems p
+
+-- наивное определение отсортированности: список `xs` отсортирован, если для любого
+-- элемента `t`, лежащего в `xs`, t меньше или равен всем последующим элементам
+is-sorted : {A : Type ℓ}
+            ⦃ po : PartialOrder A ⦄
+            (xs : List A) → Type ℓ
+is-sorted {_} {A} xs = {t : A} {p : t ∈ xs} → All (t ≤_) (nextElems p)
+
+-- давайте сделаем отдельный тип, элементами которого будут _только_ отсортированные списки
+SortedList : (A : Type ℓ) ⦃ po : PartialOrder A ⦄ → Type ℓ
+SortedList A = {!!}
+
+forget-naive : {A : Type ℓ} ⦃ po : PartialOrder A ⦄ →
+               SortedList A → List A
+forget-naive = {!!}
+
+validate-naive : {A : Type ℓ}
+                 ⦃ po : PartialOrder A ⦄
+                 (xsₛ : SortedList A) → is-sorted (forget-naive xsₛ)
+validate-naive = {!!}
+
+#+end_src
+
+
+* Задача 2 (⋆⋆⋆⋆)
+Теперь определите отсортированные списки с помощью индуктивного предиката.
+
+#+begin_src agda2
+
+data IsSorted {A : Type ℓ} ⦃ po : PartialOrder A ⦄ : List A → Type ℓ where
+  -- какие есть принципиально разные случаи отсортированности списков?
+
+SortedListᵢ : (A : Type ℓ) ⦃ po : PartialOrder A ⦄ → Type ℓ
+SortedListᵢ A = {!!}
+
+forgetᵢ : {A : Type ℓ} ⦃ po : PartialOrder A ⦄ →
+          SortedListᵢ A → List A
+forgetᵢ = {!!}
+
+validateᵢ : {A : Type ℓ}
+            ⦃ po : PartialOrder A ⦄
+            (xsₛ : SortedListᵢ A) → is-sorted (forgetᵢ xsₛ)
+validateᵢ = {!!}
+
+#+end_src
+
+
+* Задача 3 (⋆⋆⋆⋆⋆)
+Можно ли напрямую определить отсортированные списки как индуктивный тип?
+
+#+begin_src agda2
+
+data SortedListHard (A : Type ℓ) : Type ℓ where
+  -- h̷̢̘͙̳͙͇̥̐̓͌͌̈̾͜͠͝ȩ̸̡̨̳̭̘̹̞̩̠͉̥͍͔͂̆̏̆͂͗̀͊̒͊̄͋̄̕ͅ ̷͎̺̯͕̋̍̊c̵̢̨̜̬̦͎̪͔̩͕͔̪̊̏̈́̃̂̉͆̆̿͗͘̚͘͝ó̸̡̜̺̻̫m̶̧̨̩̘̻̯͍̜̥̥̪̩̮͔̎̓̈́̅͗͆̆e̶͉͚̙̫͇̩̻̩̯͂̉̂̈́͂̐̌͊͒̾̌̀̕̚͜ş̶̳̣̦͔͍͔̘͍͇̮͍̫̠͈͊
+
+#+end_src
+
+
+* Задача 4 (⋆⋆)
 Покажите, что ~reNotEmpty re~ корректно /отражает/ ситуацию, в которой существует любая строка, матчащаяся
 регуляркой ~re~.
-TODO
 
 #+begin_src agda2
 
 reNotEmpty : {A : Type ℓ} → RegExp A → 𝔹
 reNotEmpty ø = false
 reNotEmpty ε = true
-reNotEmpty (# _) = true
+reNotEmpty (‵ _) = true
 reNotEmpty (re₁ ∙ re₂) = reNotEmpty re₁ && reNotEmpty re₂
 reNotEmpty (re₁ ∣ re₂) = reNotEmpty re₁ || reNotEmpty re₂
 reNotEmpty (_ +) = true
 
 reNE-correct : {A : Type ℓ} {s : List A} {re : RegExp A} →
-               Reflects (s =~ re) (reNotEmpty re)
+               (s =~ re) → reNotEmpty re ≡ true
 reNE-correct = {!!}
 
 #+end_src
 
-* [[https://en.wikipedia.org/wiki/Pumping_lemma_for_regular_languages][Лемма о накачке]] (⋆⋆⋆⋆)
+* Задача 5, [[https://en.wikipedia.org/wiki/Pumping_lemma_for_regular_languages][лемма о накачке]] (⋆⋆⋆⋆⋆)
 Если строка ~s~ матчится регуляркой, и длина строки больше, чем некоторая константа, то внутри ~s~ существует
 суффикс, который можно невозобранно повторять, и результат тоже будет матчиться той же регуляркой.
-TODO
 
 #+begin_src agda2
 
 pumpingConstant : {A : Type ℓ} → RegExp A → ℕ
 pumpingConstant ø = 0
 pumpingConstant ε = 1
-pumpingConstant (# _) = 2
+pumpingConstant (‵ _) = 2
 pumpingConstant (re₁ ∙ re₂) = pumpingConstant re₁ + pumpingConstant re₂
 pumpingConstant (re₁ ∣ re₂) = pumpingConstant re₁ + pumpingConstant re₂
 pumpingConstant (_ +) = 1
 
--- pumpingLemma : (s =~ re) →
---                (pumpingConstant re ≤ length s) →
---                Σ _ λ s₁ → Σ _ λ s₂ → Σ _ λ s₃ → (s ≡ s₁ ++ s₂ ++ s₃) × (¬ (s₂ ≡ [])) × ((m : ℕ) → s₁ ++ s₂ ++ s₃ =~ re)
--- pumpingLemma = {!!}
+pump : {A : Type ℓ} → ℕ → List A → List A
+pump 0       xs = xs
+pump (suc n) xs = xs ++ pump n xs
+
+pumpingLemma : {A : Type ℓ} {s : List A} {re : RegExp A} → (s =~ re) →
+               (pumpingConstant re ≤ₙ length s) →
+               Σ _ λ s₁ → Σ _ λ s₂ → Σ _ λ s₃ → (s ≡ s₁ ++ s₂ ++ s₃) × (¬ (s₂ ≡ [])) × ((m : ℕ) → s₁ ++ pump m s₂ ++ s₃ =~ re)
+pumpingLemma = {!!}
 
 #+end_src
