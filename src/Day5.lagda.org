@@ -9,14 +9,10 @@ open import Prelude
 open import Data.Bool using (Bool; false; true; T)
 open import Data.Char using (Char)
 open import Data.List using (List; []; _∷_)
-open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Nat.Base using (ℕ; suc; zero; _≤ᵇ_; _≤_; z≤n; s≤s)
 open import Data.Nat.Properties using (≤ᵇ⇒≤)
 open import Data.Nat.Show using () renaming (show to show-ℕ)
-open import Data.String.Base using (String; _++_; toList; fromList; length)
-open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-open import Function.Base using (_$_)
-
+open import Data.String.Base using (String; _++_; toList; fromList)
 open import IO
 
 #+end_src
@@ -37,21 +33,10 @@ open import IO
 #+begin_src agda2
 
 ex₁ : 2 ≤ 4
-ex₁ = {!!}
+ex₁ = s≤s (s≤s z≤n)
 
-ex₂ : 200 ≤ 2004
-ex₂ = {!!}
-
-
-
-
-
-
-
-
-
-
-
+-- ex₂ : 200 ≤ 2004
+-- ex₂ = {!!}
 
 -- this example is a courtesy of Jesper Cockx
 
@@ -63,7 +48,7 @@ instance
   ≤-dec′ {p = p} = ≤ᵇ⇒≤ _ _ p
 
 ex₃ : 300 ≤ 32768
-ex₃ = {!!}
+ex₃ = it
 
 #+end_src
 [[https://jesper.sikanda.be/posts/formalize-all-the-things.html][Статья Джеспера]], где это используется.
@@ -128,21 +113,15 @@ sprintf acc (%s           ∷ fs) = λ s → sprintf (acc ++ s       ) fs
 
 #+begin_src agda2
 
-conv′ : (fuel : ℕ) (acc : String) → List Char → FmtString
-helper : ℕ → Fmt → String → List Char → FmtString
-
-helper fuel f acc cs = verbatim acc ∷ f ∷ conv′ fuel "" cs
-
-conv′ 0 acc _ = []
-conv′ (suc fuel) acc []               = verbatim acc ∷ []
-conv′ (suc fuel) acc (c ∷ [])         = verbatim (acc ++ fromList (c ∷ [])) ∷ []
-conv′ (suc fuel) acc ('%' ∷ 'u' ∷ cs) = helper fuel %u acc cs
-conv′ (suc fuel) acc ('%' ∷ 's' ∷ cs) = helper fuel %s acc cs
-conv′ (suc fuel) acc (c₁  ∷ c₂  ∷ cs) = conv′ fuel (acc ++ fromList (c₁ ∷ [])) (c₂ ∷ cs)
--- conv′ (suc fuel) acc ('%' ∷ 'd' ∷ cs) = helper fuel %d acc cs
+conv : (acc : String) → List Char → FmtString
+conv acc []               = verbatim acc ∷ []
+conv acc (c ∷ [])         = verbatim (acc ++ fromList (c ∷ [])) ∷ []
+conv acc ('%' ∷ 'u' ∷ cs) = verbatim acc ∷ %u ∷ conv "" cs
+conv acc ('%' ∷ 's' ∷ cs) = verbatim acc ∷ %s ∷ conv "" cs
+conv acc (c₁  ∷ c₂  ∷ cs) = conv (acc ++ fromList (c₁ ∷ [])) (c₂ ∷ cs)
 
 toFmtString : String → FmtString
-toFmtString str = conv′ (length str) "" (toList str)
+toFmtString str = conv "" (toList str)
 
 printf : (str : String) → ⟦ toFmtString str ⟧
 printf str = sprintf "" (toFmtString str)
