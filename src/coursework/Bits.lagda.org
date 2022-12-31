@@ -1,0 +1,240 @@
+#+begin_src agda2
+
+{-# OPTIONS --safe #-}
+module coursework.Bits where
+
+open import Prelude
+
+open import Data.Bool using (false; true; T) renaming (Bool to 𝔹)
+open import Data.Digit using (Bit; 0b; 1b; fromDigits; toDigits)
+  public
+open import Data.Fin using (Fin; zero; suc; toℕ) renaming (_≟_ to _≟ᶠ_)
+open import Data.List using (List; []; _∷_)
+open import Data.Fin.Show using () renaming (show to showFin′)
+open import Data.Nat using (ℕ; zero; suc; _∸_; _≥_; _≤ᵇ_; _≤_; z≤n; s≤s; NonZero)
+  renaming (_+_ to _+̇_; _≟_ to _≟ⁿ_)
+open import Data.Nat.Properties using (≤ᵇ⇒≤; ≤⇒≤ᵇ; +-comm; +-assoc; m∸n+n≡m)
+open import Data.Nat.Show using () renaming (show to showℕ)
+open import Function.Base using (const)
+open import Data.Maybe using (Maybe; just)
+
+open import Generics
+
+#+end_src
+
+* Level-monomorphic vectors
+Ужасный костыль, пока без него не обойтись. В библиотеке generics неправильно сделана генерация описаний
+для левелполиморфных типов. У нас тут всё вполне может жить на самом нижнем уровне, пока сойдёт.
+
+#+begin_src agda2
+module Vec′ where
+
+  infixr 5 _∷_
+  
+  data Vec (A : Type₀) : ℕ → Type₀ where
+    []  : Vec A zero
+    _∷_ : {n : ℕ} (x : A) (xs : Vec A n) → Vec A (suc n)
+
+  VecD : HasDesc Vec
+  VecD = deriveDesc Vec
+
+  variable
+    A B C : Type₀
+    m n   : ℕ
+
+  instance
+    showBool : Show 𝔹
+    Show.show showBool false = "false"
+    Show.show showBool true = "true"
+
+    showNat : Show ℕ
+    Show.show showNat = showℕ
+
+    decEqNat : DecEq ℕ
+    DecEq._≟_ decEqNat = _≟ⁿ_
+
+    showFin : Show (Fin n)
+    Show.show showFin = showFin′
+
+    decEqFin : DecEq (Fin n)
+    DecEq._≟_ decEqFin = _≟ᶠ_
+
+    showVec : ⦃ Show A ⦄ → Show (Vec A n)
+    showVec = deriveShow VecD
+ 
+    decEqVec : ⦃ DecEq A ⦄ → DecEq (Vec A n)
+    decEqVec = deriveDecEq VecD
+
+  tail : Vec A (suc n) → Vec A n
+  tail (_ ∷ xs) = xs
+
+  lookup : Vec A n → Fin n → A
+  lookup (x ∷ _ ) zero = x
+  lookup (_ ∷ xs) (suc i) = lookup xs i
+
+  replicate : A → Vec A n
+  replicate {n = zero}  x = []
+  replicate {n = suc n} x = x ∷ replicate x
+
+  _++_ : Vec A m → Vec A n → Vec A (m +̇ n)
+  []       ++ ys = ys
+  (x ∷ xs) ++ ys = x ∷ (xs ++ ys)
+
+  splitAt : (m : ℕ) {n : ℕ} (xs : Vec A (m +̇ n)) →
+            ∃₂ λ (ys : Vec A m) (zs : Vec A n) → xs ≡ ys ++ zs
+  splitAt zero    xs                = ([] , xs , refl)
+  splitAt (suc m) (x ∷ xs)          with splitAt m xs
+  splitAt (suc m) (x ∷ .(ys ++ zs)) | (ys , zs , refl) =
+    ((x ∷ ys) , zs , refl)
+
+  drop : (m : ℕ) {n : ℕ} → Vec A (m +̇ n) → Vec A n
+  drop m xs          with splitAt m xs
+  drop m .(ys ++ zs) | (ys , zs , refl) = zs
+
+  take : (m : ℕ) {n : ℕ} → Vec A (m +̇ n) → Vec A m
+  take m xs          with splitAt m xs
+  take m .(ys ++ zs) | (ys , zs , refl) = ys
+
+  zipWith : (A → B → C) → Vec A n → Vec B n → Vec C n
+  zipWith _ [] [] = []
+  zipWith f (x ∷ xs) (y ∷ ys) = f x y ∷ zipWith f xs ys
+
+  toList : Vec A n → List A
+  toList []       = []
+  toList (x ∷ xs) = x ∷ toList xs
+
+  fromList : List A → Σ ℕ (Vec A)
+  fromList []       = 0 , []
+  fromList (x ∷ xs) = let n , xs′ = fromList xs in suc n , x ∷ xs′
+
+open Vec′ public
+
+Bits : ℕ → Type₀
+Bits = Vec Bit
+
+pattern 0bₚ = zero
+pattern 1bₚ = suc zero
+
+Byte : Type₀
+Byte = Bits 8
+
+0byte : Byte
+0byte = replicate 0b
+pattern 0byteₚ = 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
+
+1byte : Byte
+1byte = 1bₚ ∷ replicate 0b
+pattern 1byteₚ = 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
+
+orᵇ : Bit → Bit → Bit
+orᵇ 0bₚ x = x
+orᵇ 1bₚ _ = 1b
+
+_||_ : Bits n → Bits n → Bits n
+_||_ = zipWith orᵇ
+
+andᵇ : Bit → Bit → Bit
+andᵇ 0bₚ _ = 0b
+andᵇ 1bₚ x = x
+
+_&&_ : Bits n → Bits n → Bits n
+_&&_ = zipWith andᵇ
+
+xorᵇ : Bit → Bit → Bit
+xorᵇ 0bₚ 0bₚ = 1b
+xorᵇ 0bₚ 1bₚ = 0b
+xorᵇ 1bₚ 0bₚ = 1b
+xorᵇ 1bₚ 1bₚ = 0b
+
+_xor_ : Bits n → Bits n → Bits n
+_xor_ = zipWith xorᵇ
+
+-- bit adder
+addᵇ : (c x y : Bit) → Σ Bit λ carry → Bit
+addᵇ 0bₚ 0bₚ y   = 0b , y
+addᵇ 1bₚ 0bₚ 0bₚ = 0b , 1b
+addᵇ 1bₚ 0bₚ 1bₚ = 1b , 0b
+addᵇ 0bₚ 1bₚ 0bₚ = 0b , 1b
+addᵇ 0bₚ 1bₚ 1bₚ = 1b , 0b
+addᵇ 1bₚ 1bₚ 0bₚ = 1b , 0b
+addᵇ 1bₚ 1bₚ 1bₚ = 1b , 1b
+
+_+_ : Bits n → Bits n → Σ Bit λ carry → Bits n
+x + y = (x +′ y) 0b
+  where
+  _+′_ : Bits n → Bits n → Bit → Σ Bit λ carry → Bits n
+  ([]       +′ []      ) c = c , []
+  ((x ∷ xs) +′ (y ∷ ys)) c with addᵇ c x y
+  ... | c₁ , r with (xs +′ ys) c₁
+  ... | c′ , rs = c′ , r ∷ rs
+
+ByteArray : ℕ → Type₀
+ByteArray = Vec Byte
+
+record Serializable (A : Type ℓ) (len : ℕ) : Type ℓ where
+  field
+    encode        : A             → ByteArray len
+    decode        : ByteArray len → Maybe A
+    decode∘encode : (x : A) →
+                    decode (encode x) ≡ just x
+    encode∘decode : (b : ByteArray len) {x : A} → (decode b ≡ just x) →
+                    b ≡ encode x
+
+BytePtr : ℕ → Type₀
+BytePtr = Fin
+
+single : ByteArray 1 → Byte
+single (x ∷ _) = x
+
+memset : Byte → ByteArray n
+memset = replicate
+
+private
+  instance
+    ≤-dec : {p : T (m ≤ᵇ n)} → m ≤ n
+    ≤-dec {p = p} = ≤ᵇ⇒≤ _ _ p
+
+split≥ : {w : ℕ} {p : Fin n} →
+         n ≥ w +̇ toℕ p →
+         Σ ℕ λ pre → Σ ℕ λ post → n ≡ pre +̇ (w +̇ post)
+split≥ {n} {w} {p} x = toℕ p , (n ∸ (w +̇ toℕ p)) , lemma
+  where
+  lemma : n ≡ toℕ p +̇ (w +̇ (n ∸ (w +̇ toℕ p)))
+  lemma =
+    begin
+      n
+    ≡˘⟨ m∸n+n≡m x ⟩
+      (n ∸ (w +̇ toℕ p)) +̇ (w +̇ toℕ p)
+    ≡⟨ cong (n ∸ (w +̇ toℕ p) +̇_) (+-comm w _) ⟩
+      (n ∸ (w +̇ toℕ p)) +̇ (toℕ p +̇ w)
+    ≡˘⟨ +-comm (toℕ p +̇ w) _ ⟩
+      (toℕ p +̇ w) +̇ (n ∸ (w +̇ toℕ p))
+    ≡⟨ +-assoc (toℕ p) _ _ ⟩
+      toℕ p +̇ (w +̇ (n ∸ (w +̇ toℕ p)))
+    ∎ where open ≡-Reasoning
+
+slice_at_as_ : (a : ByteArray n) (p : BytePtr n) (width : ℕ) ⦃ prf : n ≥ width +̇ toℕ p ⦄ → ByteArray width
+slice_at_as_ a p width ⦃ prf ⦄ with split≥ prf
+... | pre , _ , spl = take width (drop pre (subst ByteArray spl a))
+
+deref_inside_ : (p : BytePtr n) (a : ByteArray n) → Byte
+deref_inside_ zero    (x ∷ _ ) = x
+deref_inside_ (suc p) (x ∷ xs) = deref p inside xs
+
+memmove : {m n : ℕ} ⦃ p : m ≥ n ⦄ (dst : ByteArray m) (src : ByteArray n) → ByteArray m
+memmove           dst       []        = dst
+memmove ⦃ s≤s p ⦄ (_ ∷ dst) (x ∷ src) = x ∷ memmove ⦃ p ⦄ dst src
+
+private
+  module Test where
+  
+    _ : memset {2} 0byte ≡ 0byte ∷ 0byte ∷ []
+    _ = refl
+
+    all1byte : Byte
+    all1byte = replicate 1b
+
+    _ : memmove (0byte ∷ 0byte ∷ []) (all1byte ∷ []) ≡ all1byte ∷ 0byte ∷ []
+    _ = refl
+
+#+end_src

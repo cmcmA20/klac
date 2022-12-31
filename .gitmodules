@@ -1,6 +1,3 @@
-[submodule "agda-stdlib"]
-	path = agda-stdlib
-	url = https://github.com/cmcmA20/agda-stdlib
 [submodule "plfa"]
 	path = plfa
 	url = https://github.com/cmcmA20/plfa

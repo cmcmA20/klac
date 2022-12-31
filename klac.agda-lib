@@ -1,4 +1,8 @@
 name: klac
 include:
-  agda-stdlib/src/
   src/
+depend:
+  standard-library
+  generics
+flags:
+  --guardedness

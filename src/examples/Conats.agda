@@ -225,14 +225,14 @@ c (box-sim {a} refl) with ready a | content a
   ... | true  | stop = inj₁ (refl , refl)
   ... | false | go w = inj₂ (ϕ (reflᵇ w))
 
-ftᵇ : (b : CoiBox) → b ≈ᵇ toᵇ (fromᵇ b)
-c (ftᵇ b) with ready b in eq | content b
-... | true  | stop = inj₁ (refl , refl)
-... | false | go w with fromᵇ b in what
-... | s , p = {!!} -- inj₂ (ϕ (subst (w ≈ᵇ_) (what₂ (s , p) {!!}) (box-sim (trans ({!!}) (cong (toᵇ ∘ predₛ) what)))))
-
-same-conats-again : Iso ℕₛ∞ CoiBox
-Iso.to same-conats-again = toᵇ
-Iso.from same-conats-again = fromᵇ
-Iso.to-from same-conats-again = ℕₛ∞-≡ (stream-ext (tfᵇ _))
-Iso.from-to same-conats-again = sym (box-ext (ftᵇ _))
+-- ftᵇ : (b : CoiBox) → b ≈ᵇ toᵇ (fromᵇ b)
+-- c (ftᵇ b) with ready b in eq | content b
+-- ... | true  | stop = inj₁ (refl , refl)
+-- ... | false | go w with fromᵇ b in what
+-- ... | s , p = {!!} -- inj₂ (ϕ (subst (w ≈ᵇ_) (what₂ (s , p) {!!}) (box-sim (trans ({!!}) (cong (toᵇ ∘ predₛ) what)))))
+-- 
+-- same-conats-again : Iso ℕₛ∞ CoiBox
+-- Iso.to same-conats-again = toᵇ
+-- Iso.from same-conats-again = fromᵇ
+-- Iso.to-from same-conats-again = ℕₛ∞-≡ (stream-ext (tfᵇ _))
+-- Iso.from-to same-conats-again = sym (box-ext (ftᵇ _))
