@@ -1,0 +1,201 @@
+* virtual machine time
+
+#+begin_src agda2
+
+{-# OPTIONS --safe #-}
+module coursework.Machine where
+
+open import Data.Nat using (ℕ; zero; suc; NonZero; _≤_)
+open import Data.Bool using () renaming (Bool to 𝔹; false to f′; true to t′)
+open import Data.Vec using (Vec; []; _∷_; replicate; tail)
+open import Data.Fin using (zero)
+open import Data.Maybe using (Maybe; nothing; just; _>>=_)
+open import Function.Base using (_$_)
+
+open import Prelude
+open import coursework.Bits
+
+#+end_src
+
+* Регистр флагов
+** Если флаг ~stop~ поднят, то процессор остановлен, выполнение инструкций прекращается
+** ~overflow~ взводится при целочисленном переполнении в операциях сложения и умножения
+   пока не используется
+
+#+begin_src agda2
+
+record Flags : Type₀ where
+  field
+    stop     : Bit
+    overflow : Bit
+open Flags
+
+initFlags : Flags
+initFlags = record
+  { stop = 0b
+  ; overflow = 0b
+  }
+
+stopᶠ : Flags → Flags
+stopᶠ f = record f { stop = 1b }
+
+#+end_src
+
+* Архитектура компьютера
+Вместо привычной архитектуры фон Неймана будем использовать Гарвардскую.
+Для инструкций есть отдельное read-only хранилище ~program~, instruction pointer ~ip~
+указывает куда-то внутрь этого хранилища, изначально на нулевой байт.
+Для данных есть стек.
+
+Минимальная единица адресации — 1 байт.
+Размер процессорного слова — 2 байта.
+
+#+begin_src agda2
+
+record MS (programSize : ℕ) (stackSize : ℕ) : Type₀ where
+  field
+    program  : ByteArray programSize
+    ip       : BytePtr programSize
+    flags    : Flags
+    stack    : ByteArray stackSize
+open MS
+
+initMachine : (ps : ℕ) ⦃ _ : NonZero ps ⦄
+              (ss : ℕ) →
+              MS ps ss
+initMachine (suc ps) _ = record
+  { program = memset 0byte
+  ; ip = zero
+  ; flags = initFlags
+  ; stack = memset 0byte
+  }
+
+private
+  variable
+    ps ps′ ss : ℕ
+
+loadMachineCode : (mc : ByteArray ps) ⦃ p : ps ≤ ps′ ⦄ → MS ps′ ss → MS ps′ ss
+loadMachineCode mc ms = record ms { program = memmove (ms .program) mc }
+
+#+end_src
+
+* Instruction set
+
+#+begin_src agda2
+
+data Instr : Type₀ where
+  push         :     Byte → Instr
+  pop          :            Instr
+  add sub mul  :            Instr
+  eq neq le gt :            Instr
+  skip         :     Byte → Instr
+  skipIf       : 𝔹 → Byte → Instr
+  nop halt     :            Instr
+
+encode : Instr → ByteArray 2
+encode halt          = 0byte                                        ∷ 0byte ∷ []
+encode nop           = (0b ∷ 0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode (skip b)      = (0b ∷ 0b ∷ 1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ b     ∷ []
+encode (skipIf f′ b) = (0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ b     ∷ []
+encode (skipIf t′ b) = (0b ∷ 1b ∷ 0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ b     ∷ []
+encode (push b)      = (0b ∷ 1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ b     ∷ []
+encode pop           = (0b ∷ 1b ∷ 1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode add           = (1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode sub           = (1b ∷ 0b ∷ 0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode mul           = (1b ∷ 0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode eq            = (1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode neq           = (1b ∷ 1b ∷ 0b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode le            = (1b ∷ 1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+encode gt            = (1b ∷ 1b ∷ 1b ∷ 1b ∷ 0b ∷ 0b ∷ 0b ∷ 0b ∷ []) ∷ 0byte ∷ []
+
+decode : ByteArray 2 → Maybe Instr
+decode (0byteₚ                                               ∷ 0byteₚ ∷ []) = just halt
+decode ((0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just nop
+decode ((0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ b      ∷ []) = just (skip b)
+decode ((0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ b      ∷ []) = just (skipIf f′ b)
+decode ((0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ b      ∷ []) = just (skipIf t′ b)
+decode ((0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ b      ∷ []) = just (push b)
+decode ((0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just pop
+decode ((1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just add
+decode ((1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just sub
+decode ((1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just mul
+decode ((1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just eq
+decode ((1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just neq
+decode ((1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just le
+decode ((1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) = just gt
+decode _ = nothing
+
+
+private
+  module CodingTest where
+  
+    inverses₁ : (i : Instr) → decode (encode i) ≡ just i
+    inverses₁ (push x) = refl
+    inverses₁ pop = refl
+    inverses₁ add = refl
+    inverses₁ sub = refl
+    inverses₁ mul = refl
+    inverses₁ eq = refl
+    inverses₁ neq = refl
+    inverses₁ le = refl
+    inverses₁ gt = refl
+    inverses₁ (skip _) = refl
+    inverses₁ (skipIf f′ _) = refl
+    inverses₁ (skipIf t′ _) = refl
+    inverses₁ nop = refl
+    inverses₁ halt = refl
+
+    inverses₂ : (ba : ByteArray 2) {i : Instr} → decode ba ≡ just i → encode i ≡ ba
+    inverses₂ (0byteₚ                                               ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ _      ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ _      ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ _      ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ _      ∷ []) refl = refl
+    inverses₂ ((0bₚ ∷ 1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+    inverses₂ ((1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []) ∷ 0byteₚ ∷ []) refl = refl
+
+#+end_src
+
+* Интерпретация команд
+** fetch command at ip
+** if it's invalid stop
+** if it's valid then execute it and advance ip
+
+#+begin_src agda2
+
+fetch : MS ps ss → Maybe (ByteArray 2)
+fetch ms = {!!}
+
+stopᵐ : MS ps ss → MS ps ss
+stopᵐ ms = record ms { flags = stopᶠ $ ms .flags }
+
+execute : MS ps ss → Instr → Σ ℕ λ ss′ → MS ps ss′
+execute {ss = ss    } ms (push b) = suc ss , record { program = ms .program ; ip = ms .ip ; flags = ms .flags ; stack = b ∷ ms .stack }
+execute {ss = suc ss} ms pop      = ss     , record { program = ms .program ; ip = ms .ip ; flags = ms .flags ; stack = tail $ ms. stack }
+execute {ss = _     } ms pop      = _      , stopᵐ ms
+execute ms add = {!!}
+execute ms sub = {!!}
+execute ms mul = {!!}
+execute ms eq = {!!}
+execute ms neq = {!!}
+execute ms le = {!!}
+execute ms gt = {!!}
+execute ms (skip n) = {!!}
+execute ms (skipIf c n) = {!!}
+execute ms nop = {!!}
+execute ms halt = {!!}
+
+-- fetch instruction, decode, execute
+step : MS ps ss → Σ ℕ λ ss′ → MS ps ss′
+step ms with fetch ms >>= decode
+... | nothing = _ , stopᵐ ms
+... | just i  = execute ms i
+
+#+end_src

@@ -1,0 +1,89 @@
+#+begin_src agda2
+
+{-# OPTIONS --safe #-}
+module coursework.Bits where
+
+open import Prelude
+
+open import Data.Digit using (Bit; 0b; 1b)
+  public
+open import Data.Bool using (T)
+open import Data.Nat using (ℕ; zero; suc; _+_; _∸_; _≥_; _≤ᵇ_; _≤_; z≤n; s≤s; NonZero)
+open import Data.Nat.Properties using (≤ᵇ⇒≤; ≤⇒≤ᵇ; +-comm; +-assoc; m∸n+n≡m)
+open import Data.Fin using (Fin; zero; suc; toℕ)
+open import Data.Vec using (Vec; []; _∷_; replicate; drop; take)
+
+pattern 0bₚ = zero
+pattern 1bₚ = suc zero
+
+Bits : ℕ → Type₀
+Bits = Vec Bit
+
+Byte : Type₀
+Byte = Bits 8
+
+0byte : Byte
+0byte = replicate 0b
+
+pattern 0byteₚ = 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
+
+ByteArray : ℕ → Type₀
+ByteArray = Vec Byte
+
+BytePtr : ℕ → Type₀
+BytePtr = Fin
+
+single : ByteArray 1 → Byte
+single (x ∷ _) = x
+
+memset : {n : ℕ} → Byte → ByteArray n
+memset = replicate
+
+private
+  instance
+    ≤-dec : {m n : ℕ} {p : T (m ≤ᵇ n)} → m ≤ n
+    ≤-dec {p = p} = ≤ᵇ⇒≤ _ _ p
+
+split≥ : {n w : ℕ} {p : Fin n} →
+        n ≥ w + toℕ p →
+        Σ ℕ λ pre → Σ ℕ λ post → n ≡ pre + (w + post)
+split≥ {n} {w} {p} x = toℕ p , (n ∸ (w + toℕ p)) , lemma
+  where
+  lemma : n ≡ toℕ p + (w + (n ∸ (w + toℕ p)))
+  lemma =
+    begin
+      n
+    ≡˘⟨ m∸n+n≡m x ⟩
+      (n ∸ (w + toℕ p)) + (w + toℕ p)
+    ≡⟨ cong (n ∸ (w + toℕ p) +_) (+-comm w _) ⟩
+      (n ∸ (w + toℕ p)) + (toℕ p + w)
+    ≡˘⟨ +-comm (toℕ p + w) _ ⟩
+      (toℕ p + w) + (n ∸ (w + toℕ p))
+    ≡⟨ +-assoc (toℕ p) _ _ ⟩
+      toℕ p + (w + (n ∸ (w + toℕ p)))
+    ∎ where open ≡-Reasoning
+
+slice_at_as_ : {n : ℕ} (a : ByteArray n) (p : BytePtr n) (width : ℕ) ⦃ prf : n ≥ width + toℕ p ⦄ → ByteArray width
+slice_at_as_ a p width ⦃ prf ⦄ with split≥ prf
+... | pre , _ , spl = take width (drop pre (subst ByteArray spl a))
+
+-- deref_inside_ : {n : ℕ} → (p : BytePtr n) (a : ByteArray n) → Byte
+-- deref p inside a = single (slice a at p as 1)
+
+memmove : {m n : ℕ} ⦃ p : m ≥ n ⦄ (dst : ByteArray m) (src : ByteArray n) → ByteArray m
+memmove           dst       []        = dst
+memmove ⦃ s≤s p ⦄ (_ ∷ dst) (x ∷ src) = x ∷ memmove ⦃ p ⦄ dst src
+
+private
+  module Test where
+  
+    _ : memset {2} 0byte ≡ 0byte ∷ 0byte ∷ []
+    _ = refl
+
+    1byte : Byte
+    1byte = replicate 1b
+
+    _ : memmove (0byte ∷ 0byte ∷ []) (1byte ∷ []) ≡ 1byte ∷ 0byte ∷ []
+    _ = refl
+
+#+end_src
