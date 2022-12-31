@@ -61,3 +61,6 @@ module HLevels where
   isContr A = A × isProp A
 
 open HLevels public
+
+it : {A : Type ℓ} → ⦃ x : A ⦄ → A
+it ⦃ x ⦄ = x

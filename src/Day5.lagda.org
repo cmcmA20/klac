@@ -40,8 +40,9 @@ ex₁ = s≤s (s≤s z≤n)
 
 -- this example is a courtesy of Jesper Cockx
 
-it : {A : Type ℓ} → ⦃ x : A ⦄ → A
-it ⦃ x ⦄ = x
+-- now imported from prelude
+-- it : {A : Type ℓ} → ⦃ x : A ⦄ → A
+-- it ⦃ x ⦄ = x
 
 instance
   ≤-dec′ : {m n : ℕ} {p : T (m ≤ᵇ n)} → m ≤ n
