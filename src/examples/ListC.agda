@@ -16,11 +16,6 @@ module Helpers where
       to-from : {x : A} → from (to x) ≡ x
       from-to : {y : B} → to (from y) ≡ y
 
-  Σ-≡ : {A : Type₀} {B : A → Type₀} {P Q : Σ a ꞉ A , B a} →
-        (basePath : fst P ≡ fst Q) → (liftedPath : subst B basePath (snd P) ≡ snd Q) →
-        P ≡ Q
-  Σ-≡ refl refl = refl
-
 open Helpers
 
 
