@@ -41,7 +41,7 @@ nextElems {xs = _ ∷ _  } (there p) = nextElems p
 is-sorted : {A : Type ℓ}
             ⦃ po : PartialOrder A ⦄
             (xs : List A) → Type ℓ
-is-sorted {_} {A} xs = {t : A} {p : t ∈ xs} → All (t ≤_) (nextElems p)
+is-sorted {_} {A} xs = {t : A} (p : t ∈ xs) → All (t ≤_) (nextElems p)
 
 -- давайте сделаем отдельный тип, элементами которого будут _только_ отсортированные списки
 SortedList : (A : Type ℓ) ⦃ po : PartialOrder A ⦄ → Type ℓ
