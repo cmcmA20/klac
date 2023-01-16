@@ -152,6 +152,11 @@ indexed by another inductive type.
 Simultaneously declaring inductive type and a recursive function on this type.
 Considerably ups expressive power of your language, you can construct type universes with this.
 
+[[https://cs.stackexchange.com/a/97544][Precisely]], if you can do induction-recursion in a universe ~U i~, your formal system has
+a [[https://en.wikipedia.org/wiki/Mahlo_cardinal][Mahlo cardinal]] ~i~. These things are stronger than your usual ZFC set theory and
+MLTT + (universe + large elimination) + IR is stronger than plain MLTT + universe. Though [[https://cstheory.stackexchange.com/a/51031][Bauer
+says]] that universes are indispensable here, MLTT without universes + IR has the same power as MLTT.
+
 *** <<IDII>> [[https://ncatlab.org/nlab/show/inductive-inductive+type][Induction-induction]]
 Simultaneously declaring inductive type and an inductive predicate over this type.
 Research level stuff, do not try to implement at home. Read [[https://cs.stackexchange.com/questions/64130/what-is-induction-induction/64139#64139][this]].
@@ -297,6 +302,10 @@ it still holds for sets. Avoid the general version.
 ** <<PU>> Univalence
 If two types are equivalent then they are equal. Read more [[https://ncatlab.org/nlab/show/univalence+axiom][here]] and there.
 Preferably this should be a theorem in your system, otherwise let it be independent.
+
+Mike Shulman proposed that universes are coinductive (see his HOTT lectures or this [[https://cstheory.stackexchange.com/questions/52327/stronger-induction-principles-than-induction-recursion#comment116096_52332][mention]]).
+Can you also treat equality types as coinductives with canonical observations being coherences at
+a specific homotopy level?
 
 ** <<PFE>> Function extensionality
 is a consequence of [[PU][univalence]]. Highly desirable in practice but independent from MLTT.

@@ -13,6 +13,17 @@ open import Prelude
 open import examples.ListC using (module Helpers)
 open Helpers using (Iso)
 
+{-
+Coinduction is not easy
+https://groups.google.com/g/homotopytypetheory/c/tYRTcI2Opyo/m/PIrI6t5me-oJ
+
+Higher coinductive types
+https://akuklev.livejournal.com/1211554.html
+
+Flexible coinduction in Agda
+https://arxiv.org/abs/2002.06047
+-}
+
 postulate
   fun-ext : {ℓ₁ ℓ₂ : Level} → Extensionality ℓ₁ ℓ₂
   stream-ext : {A : Type ℓ} → {s₁ s₂ : Stream A} → s₁ ≈ s₂ → s₁ ≡ s₂
