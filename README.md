@@ -41,7 +41,7 @@ Open any .agda file with your editor and try to typecheck it
   - Guix System: available out of the box;
   - Arch Linux: [see arch wiki](https://wiki.archlinux.org/title/Guix);
   - Debian GNU/Linux: [guix is available since bullseye](https://packages.debian.org/bullseye/guix);
-  - Ubuntu: [guix is available since impish](https://packages.ubuntu.com/impish/guix)
+  - Ubuntu: [guix is available since impish](https://packages.ubuntu.com/jammy/guix)
   - Other distros: [Use official binary distribution](http://guix.trop.in/en/manual/devel/en/html_node/Binary-Installation.html)
 
 2. Issue this command to launch emacs in environment:
