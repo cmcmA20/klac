@@ -123,7 +123,7 @@ Byte = Bits 8
 pattern 0byteₚ = 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
 
 1byte : Byte
-1byte = 1bₚ ∷ replicate 0b
+1byte = 1b ∷ replicate 0b
 pattern 1byteₚ = 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
 
 orᵇ : Bit → Bit → Bit
