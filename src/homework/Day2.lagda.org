@@ -62,7 +62,9 @@ _∘_ : {!!}
 (g ∘ f) x = g (f x)
 
 #+end_src
-Эту задачу Thierry Coquand давал кому-то на защите диплома :-)
+WRONG: Эту задачу Thierry Coquand давал кому-то на защите диплома :-)
+Я ошибся, но так даже интереснее, вот цитата: "Martin-Lof challenged Norell at
+his thesis defence to give the following type...", взята [[https://personal.cis.strath.ac.uk/conor.mcbride/pub/DepRep/DepRep.pdf][отсюда]] из 5 главы.
 
 * Задача 4 (★★)
 Теперь мы знаем, почему не удалось доказать половинку тавтологии ~contra~ из
