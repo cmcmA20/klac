@@ -8,6 +8,9 @@ open import Day2 using (Dec′; _>_)
 open import Data.List using (List; []; _∷_; _++_)
 open import Relation.Nullary using (¬_)
 open import Data.Nat using (ℕ; zero; suc)
+open import Data.Unit
+open import Data.Empty using (⊥)
+open import Data.Sum.Base
 
 #+end_src
 
