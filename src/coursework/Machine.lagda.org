@@ -2,9 +2,10 @@
 
 #+begin_src agda2
 
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --guardedness #-}
 module coursework.Machine where
 
+open import Data.Empty using (⊥-elim)
 open import Data.Nat using (ℕ; zero; suc; NonZero; _≤_; _≤ᵇ_; s≤s; _*_) renaming (pred to predₙ)
 open import Data.Nat.Properties using (≤ᵇ⇒≤; _≤?_) renaming (_≟_ to _≟ₙ_)
 open import Data.Bool using (T) renaming (Bool to 𝔹; false to f′; true to t′)
@@ -12,7 +13,7 @@ open import Data.Bool.Properties using () renaming (_≟_ to _≟ᵇ_)
 open import Data.Fin.Base using (Fin; zero; suc; pred; toℕ)
 open import Data.Maybe using (Maybe; nothing; just; _>>=_)
 open import Function.Base using (_$_; _∘_; _∘′_)
-open import Relation.Nullary using (¬_; Dec; yes; no; contradiction)
+open import Relation.Nullary using (¬_; Dec; yes; no)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Function.Inverse using (_↔_; Inverse)
 open import Data.Empty using (⊥)
@@ -102,9 +103,9 @@ nextIp′ {ps} ip with toℕ ip ≟ₙ ps
 ... | no  p with helper ip p
   where
   helper : {ps : ℕ} → (ip : BytePtr (suc ps)) → (toℕ ip ≢ ps) → Σ ℕ λ ps′ → ps ≡ suc ps′
-  helper {zero        } zero       p = contradiction refl p
+  helper {zero        } zero       p = ⊥-elim (p refl)
   helper {suc zero    } zero       _ = zero , refl
-  helper {suc zero    } (suc zero) p = contradiction refl p
+  helper {suc zero    } (suc zero) p = ⊥-elim (p refl)
   helper {suc (suc ps)} _          _ = suc ps , refl
 ... | ps′ , refl with ip
 ... | zero    = suc zero

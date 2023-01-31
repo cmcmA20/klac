@@ -3,9 +3,9 @@ module examples.ListC where
 
 open import Prelude
 
-open import Data.Fin using (Fin) renaming (zero to fzero; suc to fsuc)
-open import Data.List using (List; []; _∷_)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin.Base using (Fin) renaming (zero to fzero; suc to fsuc)
+open import Data.List.Base using (List; []; _∷_)
+open import Data.Nat.Base using (ℕ; zero; suc)
 
 module Helpers where
 

@@ -1,10 +1,10 @@
 {-# OPTIONS --guardedness #-}
 module examples.Printf where
 
-open import Data.List using (List; []; _∷_)
+open import Data.List.Base using (List; []; _∷_)
 open import Data.Nat.Show using (readMaybe)
 open import Data.String.Base using (String)
-open import Data.Unit using (⊤; tt)
+open import Data.Unit.Base using (⊤; tt)
 open import Function.Base using (_$_)
 open import IO
 

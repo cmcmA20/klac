@@ -69,10 +69,24 @@ Open any .agda file with your editor and try to typecheck it
 3. Install Agda, it may take a while:
 
    ```sh
-   cabal install Agda-2.6.2.2
+   cabal install Agda-2.6.3
    ```
 
-4. Use emacs as your editor (commands for debian/ubuntu):
+4. Install libraries:
+
+   stdlib
+   ```sh
+   git clone -b experimental_compat https://github.com/cmcmA20/agda-stdlib ~/.agda/agda-stdlib
+   echo "$HOME/.agda/agda-stdlib/standard-library.agda-lib" >> ~/.agda/libraries
+   ```
+
+   generics
+   ```sh
+   git clone -b experimental_compat https://github.com/cmcmA20/generics ~/.agda/generics
+   echo "$HOME/.agda/generics/generics.agda-lib" >> ~/.agda/libraries
+   ```
+
+5. Use emacs as your editor (commands for debian/ubuntu):
 
    ```sh
    sudo apt update
@@ -81,7 +95,7 @@ Open any .agda file with your editor and try to typecheck it
    agda-mode compile
    ```
 
-5. If you want emacs agda2-mode to load by default when opening literate agda files, add this to emacs config:
+6. If you want emacs agda2-mode to load by default when opening literate agda files, add this to emacs config:
 
    ```lisp
    (add-to-list 'auto-mode-alist '("\\.lagda.org\\'" . agda2-mode))

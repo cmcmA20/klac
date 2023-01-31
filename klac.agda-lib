@@ -4,5 +4,3 @@ include:
 depend:
   standard-library
   generics
-flags:
-  --guardedness

@@ -13,7 +13,6 @@ open import Data.Nat.Base using (ℕ; suc; zero; _≤ᵇ_; _≤_; z≤n; s≤s)
 open import Data.Nat.Properties using (≤ᵇ⇒≤)
 open import Data.Nat.Show using () renaming (show to show-ℕ)
 open import Data.String.Base using (String; _++_; toList; fromList)
-open import IO
 
 #+end_src
 

@@ -3,8 +3,8 @@ module examples.BoolNat where
 
 open import Prelude
 
-open import Data.Bool using (false; true) renaming (Bool to 𝔹)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Bool.Base using (false; true) renaming (Bool to 𝔹)
+open import Data.Nat.Base using (ℕ; zero; suc)
 
 Injective : {ℓ : Level} {A B : Type ℓ} → (A → B) → Type ℓ
 Injective {_} {A} {B} f = Σ f⁻¹ ꞉ (B → A) , Π x ꞉ A , (f⁻¹ (f x) ≡ x)
