@@ -2,5 +2,7 @@ name: klac
 include:
   src/
 depend:
-  standard-library
-  generics
+  cubical-0.5
+flags:
+  --erasure
+  -WnoUnsupportedIndexedMatch
