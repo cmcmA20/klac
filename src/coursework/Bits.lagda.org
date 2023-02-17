@@ -6,17 +6,19 @@ module coursework.Bits where
 open import Prelude
 
 open import Data.Bool using (false; true; T) renaming (Bool to 𝔹)
-open import Data.Digit using (Bit; 0b; 1b; fromDigits; toDigits)
+open import Data.Digit using (Digit; Expansion; fromDigits; toDigits)
+open import Data.Digit using (Bit; 0b; 1b)
   public
 open import Data.Fin using (Fin; zero; suc; toℕ) renaming (_≟_ to _≟ᶠ_)
 open import Data.List using (List; []; _∷_)
 open import Data.Fin.Show using () renaming (show to showFin′)
 open import Data.Nat using (ℕ; zero; suc; _∸_; _≥_; _≤ᵇ_; _≤_; z≤n; s≤s; NonZero)
-  renaming (_+_ to _+̇_; _≟_ to _≟ⁿ_)
-open import Data.Nat.Properties using (≤ᵇ⇒≤; ≤⇒≤ᵇ; +-comm; +-assoc; m∸n+n≡m)
+  renaming (_+_ to _+̇_; _≟_ to _≟ⁿ_; _≤?_ to _≤ₙ?_)
+open import Data.Nat.Properties using (≤ᵇ⇒≤; ≤⇒≤ᵇ; +-suc; +-comm; +-assoc; m∸n+n≡m; ≤-total)
 open import Data.Nat.Show using () renaming (show to showℕ)
 open import Function.Base using (const)
 open import Data.Maybe using (Maybe; just)
+open import Relation.Nullary using (yes; no; ¬_)
 
 open import Generics
 
@@ -118,6 +120,29 @@ pattern 1bₚ = suc zero
 Byte : Type₀
 Byte = Bits 8
 
+decodeByteAsℕ : Byte → ℕ
+decodeByteAsℕ b = fromDigits (toList b)
+
+module _ where
+  private
+    lemma≤ : m ≤ n → Σ ℕ λ k → n ≡ m +̇ k
+    lemma≤ {n = n} z≤n     = n , refl
+    lemma≤         (s≤s p) = let k′ , q = lemma≤ p in k′ , cong suc q
+
+  -- just drops higher bits if it doesn't fit in Byte
+  encodeℕAsByte : ℕ → Byte
+  encodeℕAsByte n with fromList (fst (toDigits 2 n))
+  ... | l , ds with l ≤ₙ? 8
+  ... | yes l≤8 = let k , q = lemma≤ l≤8              in subst (Vec Bit) (sym q) (ds ++ replicate 0b)
+  ... | no  l≰8 = let k , q = lemma≤ (total′ _ _ l≰8) in take 8 (subst (Vec Bit) q ds)
+    where
+      open import Data.Sum.Base
+      open import Data.Empty using (⊥-elim)
+      total′ : (a b : ℕ) → ¬ (a ≤ b) → b ≤ a
+      total′ a b a≰b with ≤-total a b
+      ... | inj₁ a≤b = ⊥-elim (a≰b a≤b)
+      ... | inj₂ b≤a = b≤a
+
 0byte : Byte
 0byte = replicate 0b
 pattern 0byteₚ = 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
@@ -170,6 +195,21 @@ x + y = (x +′ y) 0b
 
 ByteArray : ℕ → Type₀
 ByteArray = Vec Byte
+
+toExpansion : ByteArray n → Expansion 256
+toExpansion [] = []
+toExpansion (x ∷ xs) with toDigits 256 (fromDigits (toList x))
+... | [] , _ = zero ∷ toExpansion xs -- unreachable
+... | n ∷ _ , snd₁ = n ∷ toExpansion xs
+
+toBits : Data.Digit.Digit 256 → Byte
+toBits d with fromList (fst (toDigits 2 (fromDigits (d ∷ []))))
+... | 8 , b = b
+... | _ , _ = 0byte -- unreachable
+
+fromExpansion : Expansion 256 → Σ ℕ ByteArray
+fromExpansion [] = 0 , []
+fromExpansion (x ∷ xs) = let n′ , xs′ = fromExpansion xs in suc n′ , toBits x ∷ xs′
 
 record Serializable (A : Type ℓ) (len : ℕ) : Type ℓ where
   field
@@ -237,4 +277,4 @@ private
     _ : memmove (0byte ∷ 0byte ∷ []) (all1byte ∷ []) ≡ all1byte ∷ 0byte ∷ []
     _ = refl
 
-#+end_src
+ #+end_src

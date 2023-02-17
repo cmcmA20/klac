@@ -1,11 +1,13 @@
 #+begin_src agda2
 
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --guardedness #-}
 module coursework.Language where
 
-open import Data.Nat using (ℕ; zero; suc) renaming (_+_ to _+̇_)
+open import Data.Nat using (ℕ; zero; suc; NonZero; _*_) renaming (_+_ to _+̇_)
+open import Data.Nat.Properties using (*-comm)
 
 open import coursework.Bits
+open import coursework.Machine
 open import Prelude
 
 #+end_src
@@ -19,8 +21,27 @@ data Exp : Type₀ where
   _＋_ : Exp → Exp → Exp
 infixr 4 _＋_
 
--- ⟦_⟧ : Exp → Byte
--- ⟦ ‵ n ⟧ = {!!}
--- ⟦ e₁ ＋ e₂ ⟧ = {!!} -- ⟦ e₁ ⟧ +̇ ⟦ e₂ ⟧
+⟦_⟧ : Exp → Byte
+⟦ ‵ n ⟧ = encodeℕAsByte n
+⟦ e₁ ＋ e₂ ⟧ = let _ , r = ⟦ e₁ ⟧ + ⟦ e₂ ⟧ in r 
+
+module Compilation where
+
+  compile : Exp → Σ ℕ Program
+  compile (‵ n)     = 1 , push (encodeℕAsByte n) ∷ []
+  compile (e₁ ＋ e₂) =
+    let l₁ , p₁ = compile e₁
+        l₂ , p₂ = compile e₂
+    in suc (l₁ +̇ l₂) , add ∷ (p₁ ++ p₂)
+
+  compile′ : Exp → Σ _ ByteArray
+  compile′ e = _ , assemble (snd (compile e))
+
+  load : (e : Exp) → Σ _ λ ps → Σ _ λ p → MS ps p
+  load e = let n , w = compile′ e in _ , w , initMachineState n ⦃ compile′-nz {e = e} ⦄ w 0
+    where
+      compile′-nz : {e : Exp} → NonZero (fst (compile′ e))
+      compile′-nz {e = ‵ _   } = _
+      compile′-nz {e = _ ＋ _} = _
 
 #+end_src
