@@ -20,7 +20,7 @@
 
 ## how to get it
 ```sh
-git clone --recursive https://github.com/cmcmA20/klac
+git clone -b advanced --recursive https://github.com/cmcmA20/klac
 ```
 
 ## if you already cloned it
@@ -66,24 +66,22 @@ Open any .agda file with your editor and try to typecheck it
    cabal update
    ```
 
-3. Install Agda, it may take a while:
+3. Install Agda from source, it may take a while:
 
    ```sh
-   cabal install Agda-2.6.3
+   git clone https://github.com/agda/agda ~/agda
+   cd ~/agda
+   git checkout 8d4416a46
+   cabal build
+   cabal install --overwrite-policy=always
    ```
 
 4. Install libraries:
 
-   stdlib
+   cubical stdlib
    ```sh
-   git clone -b experimental_compat https://github.com/cmcmA20/agda-stdlib ~/.agda/agda-stdlib
-   echo "$HOME/.agda/agda-stdlib/standard-library.agda-lib" >> ~/.agda/libraries
-   ```
-
-   generics
-   ```sh
-   git clone -b experimental_compat https://github.com/cmcmA20/generics ~/.agda/generics
-   echo "$HOME/.agda/generics/generics.agda-lib" >> ~/.agda/libraries
+   git clone -b erased https://github.com/cmcmA20/cubical ~/.agda/cubical
+   echo "$HOME/.agda/cubical/cubical.agda-lib" >> ~/.agda/libraries
    ```
 
 5. Use emacs as your editor (commands for debian/ubuntu):
