@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --erased-cubical #-}
+{-# OPTIONS --safe #-}
 open import Teaser.Toset using (Toset)
 
 module Teaser.Sorting {ℓᵃ ℓ} (Â : Toset ℓᵃ ℓ) where
@@ -53,7 +53,7 @@ module _ where
   Listₛ→List []       = []
   Listₛ→List (a ∷ as) = a ∷ Listₛ→List as
 
-open import Teaser.Permutation using (List↭; []; _∷_; swap; trunc; List→List↭) renaming (elim to ↭-elim)
+open import Teaser.Permutation using (List↭; []; _∷_; swap; trunc; List→List↭) renaming (elim-set to ↭-elim)
 
 Listₛ→List↭ : Listₛ → List↭ A
 Listₛ→List↭ = List→List↭ ∘ Listₛ→List

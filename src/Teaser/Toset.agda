@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --erased-cubical #-}
+{-# OPTIONS --safe #-}
 module Teaser.Toset where
 
 open import Cubical.Foundations.Prelude

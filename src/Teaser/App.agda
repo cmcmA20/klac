@@ -1,4 +1,4 @@
-{-# OPTIONS --erased-cubical --guardedness #-}
+{-# OPTIONS --guardedness #-}
 module Teaser.App where
 
 open import Cubical.Data.Nat

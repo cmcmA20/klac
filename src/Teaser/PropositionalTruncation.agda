@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --erased-cubical #-}
+{-# OPTIONS --safe #-}
 module Teaser.PropositionalTruncation where
 
 open import Cubical.Foundations.Prelude

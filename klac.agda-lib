@@ -5,4 +5,5 @@ depend:
   cubical-0.5
 flags:
   --erasure
+  --erased-cubical
   -WnoUnsupportedIndexedMatch
