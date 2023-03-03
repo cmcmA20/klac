@@ -71,7 +71,7 @@ Open any .agda file with your editor and try to typecheck it
    ```sh
    git clone https://github.com/agda/agda ~/agda
    cd ~/agda
-   git checkout 8d4416a46
+   git checkout ebe59b2645646e88d643fbb7418eb15610346847
    cabal build
    cabal install --overwrite-policy=always
    ```
