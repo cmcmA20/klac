@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-module Teaser.Toset where
+module Teaser.Relation.Binary.Toset where
 
 open import Cubical.Foundations.Prelude
 

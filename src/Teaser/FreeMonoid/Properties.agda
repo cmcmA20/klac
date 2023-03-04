@@ -35,3 +35,46 @@ module _ ⦃ @0 A-set : IsSet A ⦄ where
     inv same = List→FreeMonoid
     rightInv same = fun∘inv
     leftInv same = inv∘fun
+
+open import Cubical.Algebra.Monoid using (Monoid; IsMonoid; MonoidStr; makeIsMonoid)
+module @0 Test {A : Type ℓᵃ} ⦃ A-set : IsSet A ⦄ (A-mon-str : MonoidStr A) where
+  open MonoidStr A-mon-str
+
+  ε′ : A
+  ε′ = MonoidStr.ε A-mon-str
+
+  _·′_ : A → A → A
+  _·′_ = MonoidStr._·_ A-mon-str
+
+  free-monoid-is-really-free : FreeMonoid A → A
+  free-monoid-is-really-free = rec-set ε′ (_·′ ε′) _·′_ ·IdL ·IdR (λ _ _ _ → sym (·Assoc _ _ _)) (A-set .iohl)
+
+module @0 Test₂ where
+  open Test
+  open import Cubical.Data.Nat using (ℕ; isSetℕ; ·-identityʳ; ·-identityˡ; ·-assoc) renaming (_·_ to _*_)
+  open import Cubical.Algebra.Monoid.Instances.Nat
+
+  instance
+    IsSetℕ : IsSet ℕ
+    IsOfHLevel.iohl IsSetℕ = isSetℕ
+
+  testExpression : FreeMonoid ℕ
+  testExpression = ε · ([ 2 ] · ([ 3 ] · ([ 4 ] · ε)))
+
+  result₁ : ℕ
+  result₁ = free-monoid-is-really-free (NatMonoid .snd) testExpression
+
+  _ : result₁ ≡ 9
+  _ = refl
+
+  NatMonoidMult : Monoid ℓ-zero
+  fst NatMonoidMult = ℕ
+  MonoidStr.ε (snd NatMonoidMult) = 1
+  MonoidStr._·_ (snd NatMonoidMult) = _*_
+  MonoidStr.isMonoid (snd NatMonoidMult) = makeIsMonoid isSetℕ ·-assoc ·-identityʳ ·-identityˡ
+
+  result₂ : ℕ
+  result₂ = free-monoid-is-really-free (NatMonoidMult .snd) testExpression
+
+  _ : result₂ ≡ 24
+  _ = refl

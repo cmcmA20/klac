@@ -84,3 +84,30 @@ module _ ⦃ @0 A-set : IsSet A ⦄ where
 
   @0 DiffList-set : isSet (DiffList A)
   DiffList-set = IsOfHLevelDiffList .iohl
+
+
+-- module Test where
+
+--   open import Cubical.Data.Unit using (tt; isSetUnit) renaming (Unit to ⊤)
+
+--   ℕᶜ : Type₀
+--   ℕᶜ = DiffList ⊤
+
+--   instance
+--     @0 ⊤-set : IsSet ⊤
+--     IsOfHLevel.iohl ⊤-set = isSetUnit
+
+--   zero = []
+--   suc : ℕᶜ → ℕᶜ
+--   suc = tt ∷_
+
+--   _+_ : ℕᶜ → ℕᶜ → ℕᶜ
+--   _+_ = _++_
+
+--   data Vec′ (A : Type ℓᵃ) : ℕᶜ → Type ℓᵃ where
+--     emp  : Vec′ A zero
+--     cons : {n : ℕᶜ} → A → Vec′ A n → Vec′ A (suc n)
+
+  -- concat : {m n : ℕᶜ} → Vec′ A m → Vec′ A n → Vec′ A (m + n)
+  -- concat emp         ys = subst (Vec′ _) (sym (++-unit-l _)) ys
+  -- concat (cons x xs) ys = {!!}

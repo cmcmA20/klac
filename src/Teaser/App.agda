@@ -15,7 +15,7 @@ m ≤″ n = ∥ m ≤ n ∥₁
 module _ where
   open import Cubical.Relation.Binary.Poset
   open IsPoset
-  open import Teaser.Toset
+  open import Teaser.Relation.Binary.Toset
   open IsToset
 
   open import Cubical.Data.Sum using (inl; inr)
