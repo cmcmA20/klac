@@ -58,7 +58,7 @@ suc x ≤? suc y with x ≤? y
 module _ where
   open import Cubical.Relation.Binary.Poset
   open IsPoset
-  open import Teaser.Relation.Binary.Toset
+  open import Cubical.Relation.Binary.Toset
   open IsToset
 
   open import Cubical.Data.Sum using (inl; inr)

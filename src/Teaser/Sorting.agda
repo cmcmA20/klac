@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-open import Teaser.Relation.Binary.Toset using (Toset)
+open import Cubical.Relation.Binary.Toset using (Toset)
 
 module Teaser.Sorting {ℓᵃ ℓ} (Â : Toset ℓᵃ ℓ) where
 
@@ -7,7 +7,7 @@ open import Cubical.Foundations.Prelude
 
 open import Teaser.Erased using (erased; ∥_∥ᴱ; [_]ᴱ; squashᴱ) renaming (map to ∥∥ᴱ-map)
 private module _ where
-  open import Teaser.Relation.Binary.Toset using (TosetStr)
+  open import Cubical.Relation.Binary.Toset using (TosetStr)
   open module @0 TS = TosetStr (Â .snd) public
   A = Â .fst
 
