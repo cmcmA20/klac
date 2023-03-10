@@ -7,9 +7,9 @@ data FreeMonoid {ℓ} (A : Type ℓ) : Type ℓ where
   ε   : FreeMonoid A
   [_] : A → FreeMonoid A
   _·_ : FreeMonoid A → FreeMonoid A → FreeMonoid A
-  @0 leftId  : ∀ xs → ε  · xs ≡ xs
-  @0 rightId : ∀ xs → xs · ε  ≡ xs
-  @0 assoc   : ∀ xs ys zs → (xs · ys) · zs ≡ xs · (ys · zs)
+  leftId  : ∀ xs → ε  · xs ≡ xs
+  rightId : ∀ xs → xs · ε  ≡ xs
+  assoc   : ∀ xs ys zs → (xs · ys) · zs ≡ xs · (ys · zs)
   @0 trunc   : isSet (FreeMonoid A)
 
 private variable
@@ -22,9 +22,9 @@ module _ {B : FreeMonoid A → Type ℓᵇ}
          ([_]* : (x : A) → B [ x ])
          (_⋯_  : {xs ys : FreeMonoid A} → B xs → B ys → B (xs · ys)) where
 
-  module _ (@0 leftId*  : {xs : FreeMonoid A} (xs* : B xs) → PathP (λ i → B (leftId xs i)) (ε* ⋯ xs*) xs*)
-           (@0 rightId* : {xs : FreeMonoid A} (xs* : B xs) → PathP (λ i → B (rightId xs i)) (xs* ⋯ ε*) xs*)
-           (@0 assoc*   : {xs ys zs : FreeMonoid A} (xs* : B xs) (ys* : B ys) (zs* : B zs) → PathP (λ i → B (assoc xs ys zs i)) ((xs* ⋯ ys*) ⋯ zs*) (xs* ⋯ (ys* ⋯ zs*)))
+  module _ (leftId*  : {xs : FreeMonoid A} (xs* : B xs) → PathP (λ i → B (leftId xs i)) (ε* ⋯ xs*) xs*)
+           (rightId* : {xs : FreeMonoid A} (xs* : B xs) → PathP (λ i → B (rightId xs i)) (xs* ⋯ ε*) xs*)
+           (assoc*   : {xs ys zs : FreeMonoid A} (xs* : B xs) (ys* : B ys) (zs* : B zs) → PathP (λ i → B (assoc xs ys zs i)) ((xs* ⋯ ys*) ⋯ zs*) (xs* ⋯ (ys* ⋯ zs*)))
            (@0 trunc*   : (xs : FreeMonoid A) → isSet (B xs)) where
     elim-set : (xs : FreeMonoid A) → B xs
     elim-set ε = ε*
@@ -38,7 +38,7 @@ module _ {B : FreeMonoid A → Type ℓᵇ}
       where open import Cubical.Foundations.HLevels using (isOfHLevel→isOfHLevelDep)
 
 
-  module _ (@0 B-prop : {xs : FreeMonoid A} → isProp (B xs)) where
+  module _ (B-prop : {xs : FreeMonoid A} → isProp (B xs)) where
     elim-prop : (xs : FreeMonoid A) → B xs
     elim-prop = elim-set (λ _ → toPathP (B-prop _ _))
                          (λ _ → toPathP (B-prop _ _))
@@ -49,9 +49,9 @@ module _ {B : FreeMonoid A → Type ℓᵇ}
 module _ (ε*   : B)
          ([_]* : (x : A) → B)
          (_⋯_  : B → B → B)
-         (@0 leftId*  : (xs* : B) → ε*  ⋯ xs* ≡ xs*)
-         (@0 rightId* : (xs* : B) → xs* ⋯ ε*  ≡ xs*)
-         (@0 assoc*   : (xs* ys* zs* : B) → (xs* ⋯ ys*) ⋯ zs* ≡ xs* ⋯ (ys* ⋯ zs*))
+         (leftId*  : (xs* : B) → ε*  ⋯ xs* ≡ xs*)
+         (rightId* : (xs* : B) → xs* ⋯ ε*  ≡ xs*)
+         (assoc*   : (xs* ys* zs* : B) → (xs* ⋯ ys*) ⋯ zs* ≡ xs* ⋯ (ys* ⋯ zs*))
          (@0 B-set : isSet B) where
   rec-set : (xs : FreeMonoid A) → B
   rec-set = elim-set ε* [_]* _⋯_ leftId* rightId* assoc* (λ _ → B-set)
@@ -76,11 +76,11 @@ module _ ⦃ @0 A-set : IsSet A ⦄ where
   first nothing  my = my
   first (just x) _  = just x
 
-  @0 first-unit : (xs* : Maybe A) → first xs* nothing ≡ xs*
+  first-unit : (xs* : Maybe A) → first xs* nothing ≡ xs*
   first-unit nothing  = refl
   first-unit (just _) = refl
 
-  @0 first-assoc : (xs* ys* zs* : Maybe A) → first (first xs* ys*) zs* ≡ first xs* (first ys* zs*)
+  first-assoc : (xs* ys* zs* : Maybe A) → first (first xs* ys*) zs* ≡ first xs* (first ys* zs*)
   first-assoc nothing  _ _ = refl
   first-assoc (just _) _ _ = refl
 

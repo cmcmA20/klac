@@ -8,7 +8,7 @@ open import Cubical.Foundations.Prelude
 open import Teaser.Erased using (erased; ∥_∥ᴱ; [_]ᴱ; squashᴱ) renaming (map to ∥∥ᴱ-map)
 private module _ where
   open import Teaser.Relation.Binary.Toset using (TosetStr)
-  open module @0 TS = TosetStr (Â .snd .erased) public
+  open module @0 TS = TosetStr (Â .snd) public
   A = Â .fst
 
 data Listₛ : Type (ℓ-max ℓᵃ ℓ)

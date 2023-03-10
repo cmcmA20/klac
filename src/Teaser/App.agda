@@ -7,31 +7,11 @@ open import Cubical.Foundations.Prelude
 open import Cubical.IO
 open import Cubical.Relation.Nullary using (Dec; yes; no; ¬_; Discrete)
 
+open import Teaser.Prelude
 open import Teaser.Erased
 
-@0 _≤″_ : ℕ → ℕ → Type₀
+_≤″_ : ℕ → ℕ → Type₀
 m ≤″ n = ∥ m ≤ n ∥₁
-
-module _ where
-  open import Cubical.Relation.Binary.Poset
-  open IsPoset
-  open import Teaser.Relation.Binary.Toset
-  open IsToset
-
-  open import Cubical.Data.Sum using (inl; inr)
-  ℕ-is-toset : IsToset _≤″_
-  is-set (isPoset ℕ-is-toset)             = isSetℕ
-  is-prop-valued (isPoset ℕ-is-toset) _ _ = squash₁
-  is-refl (isPoset ℕ-is-toset) _          = ∣ ≤-refl ∣₁
-  is-trans (isPoset ℕ-is-toset) _ _ _     = ∥∥₁-map2 ≤-trans
-  is-antisym (isPoset ℕ-is-toset) _ _ p q = ∥∥₁-rec (isSetℕ _ _) (λ x → x) (∥∥₁-map2 ≤-antisym p q)
-  total ℕ-is-toset x y with x ≟ y
-  ... | lt (k , p) = inl ∣ suc k , sym (+-suc _ _) ∙ p ∣₁
-  ... | eq p       = inl ∣ 0 , p ∣₁
-  ... | gt (k , p) = inr ∣ suc k , sym (+-suc _ _) ∙ p ∣₁
-
-  ℕ-toset : Toset ℓ-zero ℓ-zero
-  ℕ-toset = toset ℕ _≤″_ ℕ-is-toset
 
 open import Cubical.Data.Empty using (⊥) renaming (rec to ⊥-rec)
 module _ where
@@ -74,6 +54,27 @@ suc x ≤? zero  = no λ p → ∥∥₁-rec (λ _ ()) (λ x → x) (∥∥₁-m
 suc x ≤? suc y with x ≤? y
 ... | yes ∣x≤y∣₁ = yes (∥∥₁-map (λ (k , p) → k , +-suc′ _ _ ∙ cong suc p) ∣x≤y∣₁)
 ... | no  ∣x≰y∣₁ = no λ p → ∣x≰y∣₁ (∥∥₁-map (λ (k , q) → k , injSuc′ (sym (+-suc′ _ _) ∙ q)) p)
+
+module _ where
+  open import Cubical.Relation.Binary.Poset
+  open IsPoset
+  open import Teaser.Relation.Binary.Toset
+  open IsToset
+
+  open import Cubical.Data.Sum using (inl; inr)
+  @0 ℕ-is-toset : IsToset _≤″_
+  is-set (isPoset ℕ-is-toset)             = isSetℕ
+  is-prop-valued (isPoset ℕ-is-toset) _ _ = squash₁
+  is-refl (isPoset ℕ-is-toset) _          = ∣ ≤-refl ∣₁
+  is-trans (isPoset ℕ-is-toset) _ _ _     = ∥∥₁-map2 ≤-trans
+  is-antisym (isPoset ℕ-is-toset) _ _ p q = ∥∥₁-rec (isSetℕ _ _) (λ x → x) (∥∥₁-map2 ≤-antisym p q)
+  total ℕ-is-toset x y with x ≟ y
+  ... | lt (k , p) = inl ∣ suc k , sym (+-suc _ _) ∙ p ∣₁
+  ... | eq p       = inl ∣ 0 , p ∣₁
+  ... | gt (k , p) = inr ∣ suc k , sym (+-suc _ _) ∙ p ∣₁
+
+  ℕ-toset : Toset ℓ-zero ℓ-zero
+  ℕ-toset = toset ℕ _≤″_ ℕ-is-toset
 
 main : Main
 main = run do

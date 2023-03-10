@@ -2,7 +2,7 @@ name: klac
 include:
   src/
 depend:
-  cubical-0.5
+  cubical-mini
 flags:
   --erasure
   --erased-cubical

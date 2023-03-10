@@ -43,6 +43,8 @@ private
 
 module _ ⦃ @0 A-set : IsSet A ⦄ where
   open import Cubical.Data.List using (List; isOfHLevelList) renaming ([] to []′; _++_ to _++′_; ++-unit-r to ++-unit-r′)
+  open import Cubical.Foundations.Isomorphism
+  open import Cubical.Foundations.Univalence
 
   @0 dl≡ : {dxs dys : DiffList A} → (dxs .fun ≡ dys .fun) → dxs ≡ dys
   dl≡ {dxs = dxs} {dys = dys} r =

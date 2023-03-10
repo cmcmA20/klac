@@ -2,6 +2,7 @@
 module Teaser.Relation.Binary.Toset where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Structure
 
 private variable ℓ ℓ′ : Level
 
@@ -14,8 +15,8 @@ module _ where
     constructor istoset
 
     field
+      total : (x y : A) → (x ≤ y) ⊎ (y ≤ x)
       @0 isPoset : IsPoset _≤_
-      @0 total   : (x y : A) → (x ≤ y) ⊎ (y ≤ x)
 
     open import Cubical.Relation.Nullary using (¬_)
     total′ : (x y : A) → ¬ (x ≤ y) → y ≤ x
@@ -27,19 +28,15 @@ module _ where
   record TosetStr (ℓ′ : Level) (A : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc ℓ′)) where
     constructor tosetstr
     field
-      @0 _≤_     : A → A → Type ℓ′
+      _≤_     : A → A → Type ℓ′
       @0 isToset : IsToset _≤_
 
     infixl 7 _≤_
     open module @0 IT = IsToset isToset public
     open module @0 IP = IsPoset isPoset public
 
-open import Teaser.Erased using (Erased; ∥_∥ᴱ; [_]; ∣_∣₁)
-TypeWithStrᴱ : {ℓ′ : Level} (ℓ : Level) → (@0 S : Type ℓ → Type ℓ′) → Type (ℓ-max (ℓ-suc ℓ) ℓ′)
-TypeWithStrᴱ ℓ S = Σ[ X ∈ Type ℓ ] Erased (S X)
-
 Toset : ∀ ℓ ℓ′ → Type (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ′))
-Toset ℓ ℓ′ = TypeWithStrᴱ ℓ (TosetStr ℓ′)
+Toset ℓ ℓ′ = TypeWithStr ℓ (TosetStr ℓ′)
 
-toset : (A : Type ℓ) (@0 _≤_ : A → A → Type ℓ′) (@0 h : IsToset _≤_) → Toset ℓ ℓ′
-toset A _≤_ h = A , [ tosetstr _≤_ h ]
+toset : (A : Type ℓ) (_≤_ : A → A → Type ℓ′) (@0 h : IsToset _≤_) → Toset ℓ ℓ′
+toset A _≤_ h = A , tosetstr _≤_ h
