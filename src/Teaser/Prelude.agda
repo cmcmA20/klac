@@ -8,7 +8,7 @@ open import Cubical.Data.Nat.Base using (ℕ)
 
 private variable ℓ : Level
 
-record @0 IsOfHLevel (n : ℕ) (A : Type ℓ) : Type ℓ where
+record @0 IsOfHLevel (@0 n : ℕ) (A : Type ℓ) : Type ℓ where
   field
     iohl : isOfHLevel n A
 open IsOfHLevel ⦃ ... ⦄ public
