@@ -1,7 +1,8 @@
 {-# OPTIONS --safe #-}
 module Teaser.Permutation.Base where
 
-open import Teaser.Prelude
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
 
 private variable
   ℓᵃ ℓᵇ : Level

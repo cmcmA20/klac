@@ -1,15 +1,23 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --overlapping-instances --instance-search-depth=2 #-}
 module Teaser.FreeMonoid.Properties where
 
-open import Teaser.Prelude
+open import Cubical.Foundations.Prelude
+
+open import Cubical.Data.Nat.HLevel
+open import Cubical.Data.List.HLevel
+
+open import Cubical.Interface.HLevels
+
 open import Teaser.FreeMonoid.Base
+
+open IsOfHLevel ⦃ ... ⦄
 
 private variable
   ℓᵃ ℓᵇ : Level
   A : Type ℓᵃ
   B : Type ℓᵇ
 
-module _ ⦃ @0 A-set : IsSet A ⦄ where
+module _ ⦃ A-set : IsSet A ⦄ where
   open import Cubical.Data.List.Base using (List) renaming ([] to []′; _∷_ to _∷′_; _++_ to _++′_)
 
   @0 distrib-over-++ : (xs ys : List A) → List→FreeMonoid (xs ++′ ys) ≡ List→FreeMonoid xs · List→FreeMonoid ys
@@ -26,7 +34,7 @@ module _ ⦃ @0 A-set : IsSet A ⦄ where
     fun∘inv (x ∷′ xs) = cong (x ∷′_) (fun∘inv xs)
 
     inv∘fun : (xs : FreeMonoid A) → List→FreeMonoid (FreeMonoid→List xs) ≡ xs
-    inv∘fun = elim-prop refl (λ _ → rightId _) (λ p q → distrib-over-++ _ _ ∙ cong₂ _·_ p q) (trunc _ _) 
+    inv∘fun = elim-prop refl (λ _ → rightId _) (λ p q → distrib-over-++ _ _ ∙ cong₂ _·_ p q)
 
     open import Cubical.Foundations.Isomorphism using (isoToEquiv; Iso)
     open Iso
@@ -47,16 +55,12 @@ module Test {A : Type ℓᵃ} ⦃ @0 A-set : IsSet A ⦄ (A-mon-str : MonoidStr 
   _·′_ = MonoidStr._·_ A-mon-str
 
   free-monoid-is-really-free : FreeMonoid A → A
-  free-monoid-is-really-free = rec-set ε′ (_·′ ε′) _·′_ ·IdL ·IdR (λ _ _ _ → sym (·Assoc _ _ _)) (A-set .iohl)
+  free-monoid-is-really-free = rec-set ε′ (_·′ ε′) _·′_ ·IdL ·IdR (λ _ _ _ → sym (·Assoc _ _ _))
 
 module Test₂ where
   open Test
   open import Cubical.Data.Nat using (ℕ; isSetℕ; ·-identityʳ; ·-identityˡ; ·-assoc) renaming (_·_ to _*_)
   open import Cubical.Algebra.Monoid.Instances.Nat
-
-  instance
-    IsSetℕ : IsSet ℕ
-    IsOfHLevel.iohl IsSetℕ = isSetℕ
 
   testExpression : FreeMonoid ℕ
   testExpression = ε · ([ 2 ] · ([ 3 ] · ([ 4 ] · ε)))
@@ -71,7 +75,7 @@ module Test₂ where
   fst NatMonoidMult = ℕ
   MonoidStr.ε (snd NatMonoidMult) = 1
   MonoidStr._·_ (snd NatMonoidMult) = _*_
-  MonoidStr.isMonoid (snd NatMonoidMult) = makeIsMonoid isSetℕ ·-assoc ·-identityʳ ·-identityˡ
+  MonoidStr.isMonoid (snd NatMonoidMult) = makeIsMonoid ·-assoc ·-identityʳ ·-identityˡ
 
   result₂ : ℕ
   result₂ = free-monoid-is-really-free (NatMonoidMult .snd) testExpression

@@ -4,6 +4,8 @@ include:
 depend:
   cubical-mini
 flags:
-  --erasure
   --erased-cubical
+  --erasure
+  --erased-matches
+  --no-import-sorts
   -WnoUnsupportedIndexedMatch
