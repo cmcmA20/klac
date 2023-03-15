@@ -1,6 +1,7 @@
 module Teaser.InfNat.Base where
 
-open import Teaser.Prelude
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
 
 data ℕ∞ : Type where
   zero : ℕ∞

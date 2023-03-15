@@ -1,6 +1,6 @@
 module Teaser.InfNat.Properties where
 
-open import Teaser.Prelude
+open import Cubical.Foundations.Prelude
 open import Teaser.InfNat.Base
 
 +Assoc : ∀ m n k → m + (n + k) ≡ (m + n) + k
@@ -30,11 +30,20 @@ InfR = ⟪ InfR″ ⟫⇓
   ⟪ InfR″ ⟫∞ = refl
   ⟪ InfR″ ⟫prop _ = trunc _ _
 
--- +Comm : ∀ m n → m + n ≡ n + m
+@0 +sucComm : ∀ m n → suc (m + n) ≡ m + suc n
++sucComm m n = ⟪ +sucComm″ ⟫⇓ m
+  module +sucComm′ where
+  +sucComm″ : ℕ∞⇒ λ m → suc m + n ≡ m + suc n
+  ⟪ +sucComm″ ⟫zero = refl
+  ⟪ +sucComm″ ⟫suc m p = cong suc p
+  ⟪ +sucComm″ ⟫∞ = inf
+  ⟪ +sucComm″ ⟫prop _ = trunc _ _
+
+-- @0 +Comm : ∀ m n → m + n ≡ n + m
 -- +Comm m n = ⟪ +Comm″ ⟫⇓ m
 --   module +Comm′ where
 --   +Comm″ : ℕ∞⇒ (λ m → m + n ≡ n + m)
 --   ⟪ +Comm″ ⟫zero = sym (UnitR _)
---   ⟪ +Comm″ ⟫suc m p = cong suc p ∙ {!!}
---   ⟪ +Comm″ ⟫∞ = {!!}
---   ⟪ +Comm″ ⟫prop = {!!}
+--   ⟪ +Comm″ ⟫suc m p = cong suc p ∙ +sucComm n m
+--   ⟪ +Comm″ ⟫∞ = sym inf ∙ {!!}
+--   ⟪ +Comm″ ⟫prop _ = trunc _ _
