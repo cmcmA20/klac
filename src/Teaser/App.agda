@@ -53,4 +53,4 @@ main = run do
   let
     xs = 4 ∷ 2 ∷ 0 ∷ 1 ∷ 3 ∷ 3 ∷ 7 ∷ []
     result = insertSort _≤?_ (List→List↭ xs)
-  putStrLn $ show $ result .fst
+  printLn $ result .fst
