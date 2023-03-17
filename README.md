@@ -66,10 +66,10 @@ Open any .agda file with your editor and try to typecheck it
    cabal update
    ```
 
-3. Install Agda from source, it may take a while:
+3. Install Agda 2.6.4 from source, it may take a while:
 
    ```sh
-   git clone -b erased-equiv https://github.com/cmcmA20/agda/ ~/agda
+   git clone https://github.com/agda/agda/ ~/agda
    cd ~/agda
    cabal build
    cabal install --overwrite-policy=always
@@ -79,7 +79,7 @@ Open any .agda file with your editor and try to typecheck it
 
    mini cubical library
    ```sh
-   git clone -b global-erasure-v2 https://github.com/cmcmA20/cubical-mini ~/.agda/cubical-mini
+   git clone https://github.com/cmcmA20/cubical-mini ~/.agda/cubical-mini
    echo "$HOME/.agda/cubical-mini/cubical.agda-lib" >> ~/.agda/libraries
    ```
 
