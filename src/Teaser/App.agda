@@ -5,18 +5,20 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
 
 open import Cubical.Data.Nat
-open import Cubical.Data.Nat.Order
-open import Cubical.Data.Nat.Instances
+open import Cubical.Data.Nat.Order renaming (_≟_ to _≟′_)
 open import Cubical.Data.Sum
 open import Cubical.Data.List
 
-open import Cubical.HITs.PropositionalTruncation as ∥∥₁
+open import Cubical.Truncation.Propositional as ∥∥₁
+
+open import Cubical.Algebra.Monoid.Instances.Nat
 
 open import Cubical.Relation.Nullary
 open import Cubical.Relation.Binary.Poset
 open import Cubical.Relation.Binary.Toset
 
-open import Cubical.Interface.Show
+open import Cubical.Instances.DecEq
+open import Cubical.Instances.Show
 
 open import Cubical.IO
 
@@ -35,7 +37,7 @@ is-prop-valued (isPoset ℕ-is-toset) _ _ = squash₁
 is-refl (isPoset ℕ-is-toset) _          = ∣ ≤-refl ∣₁
 is-trans (isPoset ℕ-is-toset) _ _ _     = ∥∥₁.map2 ≤-trans
 is-antisym (isPoset ℕ-is-toset) _ _ p q = ∥∥₁.rec (isSetℕ _ _) (λ x → x) (∥∥₁.map2 ≤-antisym p q)
-total ℕ-is-toset x y with x ≟ y
+total ℕ-is-toset x y with x ≟′ y
 ... | lt (k , p) = inl ∣ suc k , sym (+-suc _ _) ∙ p ∣₁
 ... | eq p       = inl ∣ 0 , p ∣₁
 ... | gt (k , p) = inr ∣ suc k , sym (+-suc _ _) ∙ p ∣₁

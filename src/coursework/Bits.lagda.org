@@ -1,0 +1,188 @@
+#+begin_src agda2
+
+{-# OPTIONS --safe #-}
+module coursework.Bits where
+
+open import Cubical.Foundations.Prelude
+
+open import Cubical.Data.Bool hiding (_≥_; _⊕_)
+open import Cubical.Data.Digit
+open import Cubical.Data.Fin.Base
+open import Cubical.Data.List.Base
+open import Cubical.Data.Nat
+open import Cubical.Data.Nat.Order
+open import Cubical.Data.Maybe.Base
+open import Cubical.Data.Vec
+
+open import Cubical.Relation.Nullary
+
+open import Cubical.Tactics.NatSolver.Reflection
+
+Bits : ℕ → Type₀
+Bits n = Vec Bit n
+
+pattern 0bₚ = zero
+pattern 1bₚ = suc zero
+
+Byte : Type₀
+Byte = Bits 8
+
+-- decodeByteAsℕ : Byte → ℕ
+-- decodeByteAsℕ b = fromDigits (toList b)
+
+-- module _ where
+--   private
+--     lemma≤ : m ≤ n → Σ ℕ λ k → n ≡ m +̇ k
+--     lemma≤ {n = n} z≤n     = n , refl
+--     lemma≤         (s≤s p) = let k′ , q = lemma≤ p in k′ , cong suc q
+
+--   -- just drops higher bits if it doesn't fit in Byte
+--   encodeℕAsByte : ℕ → Byte
+--   encodeℕAsByte n with fromList (fst (toDigits 2 n))
+--   ... | l , ds with l ≤ₙ? 8
+--   ... | yes l≤8 = let k , q = lemma≤ l≤8              in subst (Vec Bit) (sym q) (ds ++ replicate 0b)
+--   ... | no  l≰8 = let k , q = lemma≤ (total′ _ _ l≰8) in take 8 (subst (Vec Bit) q ds)
+--     where
+--       open import Data.Sum.Base
+--       open import Data.Empty using (⊥-elim)
+--       total′ : (a b : ℕ) → ¬ (a ≤ b) → b ≤ a
+--       total′ a b a≰b with ≤-total a b
+--       ... | inj₁ a≤b = ⊥-elim (a≰b a≤b)
+--       ... | inj₂ b≤a = b≤a
+
+0byte : Byte
+0byte = replicate 0b
+pattern 0byteₚ = 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
+
+1byte : Byte
+1byte = 1b ∷ replicate 0b
+pattern 1byteₚ = 1bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ 0bₚ ∷ []
+
+orᵇ : Bit → Bit → Bit
+orᵇ 0bₚ x = x
+orᵇ 1bₚ _ = 1b
+
+private variable
+  ℓ : Level
+  n : ℕ
+
+_||_ : Bits n → Bits n → Bits n
+_||_ = zipWith orᵇ
+
+andᵇ : Bit → Bit → Bit
+andᵇ 0bₚ _ = 0b
+andᵇ 1bₚ x = x
+
+_&&_ : Bits n → Bits n → Bits n
+_&&_ = zipWith andᵇ
+
+xorᵇ : Bit → Bit → Bit
+xorᵇ 0bₚ 0bₚ = 1b
+xorᵇ 0bₚ 1bₚ = 0b
+xorᵇ 1bₚ 0bₚ = 1b
+xorᵇ 1bₚ 1bₚ = 0b
+
+_xor_ : Bits n → Bits n → Bits n
+_xor_ = zipWith xorᵇ
+
+-- bit adder
+addᵇ : (c x y : Bit) → Σ Bit λ carry → Bit
+addᵇ 0bₚ 0bₚ y   = 0b , y
+addᵇ 1bₚ 0bₚ 0bₚ = 0b , 1b
+addᵇ 1bₚ 0bₚ 1bₚ = 1b , 0b
+addᵇ 0bₚ 1bₚ 0bₚ = 0b , 1b
+addᵇ 0bₚ 1bₚ 1bₚ = 1b , 0b
+addᵇ 1bₚ 1bₚ 0bₚ = 1b , 0b
+addᵇ 1bₚ 1bₚ 1bₚ = 1b , 1b
+
+_+ᵇ_ : Bits n → Bits n → Σ Bit λ carry → Bits n
+x +ᵇ y = (x +ᵇ′ y) 0b
+  where
+  _+ᵇ′_ : ∀ {n} → Bits n → Bits n → Bit → Σ Bit λ carry → Bits n
+  _+ᵇ′_ {n = zero } []       []       c = c , []
+  _+ᵇ′_ {n = suc _} (x ∷ xs) (y ∷ ys) c with addᵇ c x y
+  ... | c₁ , r with (xs +ᵇ′ ys) c₁
+  ... | c₂ , rs = c₂ , r ∷ rs
+
+ByteArray : ℕ → Type₀
+ByteArray n = Vec Byte n
+
+-- toExpansion : ByteArray n → Expansion 256
+-- toExpansion [] = []
+-- toExpansion (x ∷ xs) with toDigits 256 (fromDigits (toList x))
+-- ... | [] , _ = zero ∷ toExpansion xs -- unreachable
+-- ... | n ∷ _ , snd₁ = n ∷ toExpansion xs
+
+-- toBits : Data.Digit.Digit 256 → Byte
+-- toBits d with fromList (fst (toDigits 2 (fromDigits (d ∷ []))))
+-- ... | 8 , b = b
+-- ... | _ , _ = 0byte -- unreachable
+
+-- fromExpansion : Expansion 256 → Σ ℕ ByteArray
+-- fromExpansion [] = 0 , []
+-- fromExpansion (x ∷ xs) = let n′ , xs′ = fromExpansion xs in suc n′ , toBits x ∷ xs′
+
+record Serializable (A : Type ℓ) (len : ℕ) : Type ℓ where
+  field
+    encode        : A             → ByteArray len
+    decode        : ByteArray len → Maybe A
+    decode∘encode : (x : A) →
+                    decode (encode x) ≡ just x
+    encode∘decode : (b : ByteArray len) {x : A} → (decode b ≡ just x) →
+                    b ≡ encode x
+
+BytePtr : ℕ → Type₀
+BytePtr n = Fin n
+
+single : ByteArray 1 → Byte
+single (x ∷ _) = x
+
+memset : Byte → ByteArray n
+memset = replicate
+
+-- private
+--   instance
+--     ≤-dec : {p : T (m ≤ᵇ n)} → m ≤ n
+--     ≤-dec {p = p} = ≤ᵇ⇒≤ _ _ p
+
+
+private
+  whatever : ∀ m w z → m + (w + z) ≡ z + (w + m)
+  whatever = solve
+
+split≥ : {w : ℕ} {k : Fin n} →
+         n ≥ (w + toℕ k) →
+         Σ ℕ λ pre → Σ ℕ λ post → n ≡ pre + (w + post)
+split≥ {n} {w} {k} (m , p) = toℕ k , m , lemma
+  where
+  lemma : n ≡ toℕ k + (w + m)
+  lemma =
+    n               ≡⟨ sym p ⟩
+    m + (w + toℕ k) ≡⟨ whatever m w (toℕ k) ⟩
+    toℕ k + (w + m) ∎
+
+slice_at_as_ : (a : ByteArray n) (p : BytePtr n) (width : ℕ) { prf : n ≥ width + toℕ p } → ByteArray width
+slice_at_as_ a p width { prf } with split≥ prf
+... | pre , _ , spl = take width (drop pre (subst ByteArray spl a))
+
+deref_inside_ : (p : BytePtr n) (a : ByteArray n) → Byte
+deref_inside_ {n = suc _} zero    (x ∷ _ ) = x
+deref_inside_ {n = suc _} (suc p) (x ∷ xs) = deref p inside xs
+
+-- memmove : {m n : ℕ} ⦃ p : m ≥ n ⦄ (dst : ByteArray m) (src : ByteArray n) → ByteArray m
+-- memmove           dst       []        = dst
+-- memmove ⦃ s≤s p ⦄ (_ ∷ dst) (x ∷ src) = x ∷ memmove ⦃ p ⦄ dst src
+
+private
+  module Test where
+  
+    _ : memset {2} 0byte ≡ 0byte ∷ 0byte ∷ []
+    _ = refl
+
+    all1byte : Byte
+    all1byte = replicate 1b
+
+    -- _ : memmove (0byte ∷ 0byte ∷ []) (all1byte ∷ []) ≡ all1byte ∷ 0byte ∷ []
+    -- _ = refl
+
+ #+end_src

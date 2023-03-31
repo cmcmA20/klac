@@ -11,7 +11,7 @@ open import Cubical.Data.Nat
 open import Cubical.Algebra.Monoid.Base
 open import Cubical.Algebra.Monoid.Instances.Nat
 
-open import Cubical.Interface.HLevels
+open import Cubical.Instances.HLevels
 
 private variable
   ℓ : Level
@@ -51,7 +51,6 @@ open Addition
 module List (A : Type ℓ) ⦃ _ : IsSet A ⦄ where
 
   open import Cubical.Data.List
-  open import Cubical.Data.List.Instances
 
   ListMonoid : Monoid _
   ListMonoid = makeMonoid {M = List A} [] _++_ (λ xs _ _ → sym (++-assoc xs _ _)) ++-unit-r (λ _ → refl)

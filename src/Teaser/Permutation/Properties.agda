@@ -2,7 +2,7 @@
 module Teaser.Permutation.Properties where
 
 open import Cubical.Foundations.Prelude
-open import Cubical.Relation.Nullary.Base using (¬_)
+open import Cubical.Relation.Nullary.Negation using (¬_)
 
 open import Teaser.Permutation.Base
 

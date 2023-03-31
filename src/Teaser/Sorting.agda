@@ -12,21 +12,15 @@ open import Cubical.Data.Bool using (Bool; true; false; true≢false)
 open import Cubical.Data.Maybe using (Maybe; just; nothing; just-inj)
 open import Cubical.Data.Sigma
 open import Cubical.Data.List using (List; []; _∷_)
-open import Cubical.Data.List.Instances
-open import Cubical.HITs.PropositionalTruncation as ∥∥₁
-open import Cubical.HITs.PropositionalTruncation.Instances
+open import Cubical.Truncation.Propositional as ∥∥₁
 
 open import Cubical.Relation.Nullary
 
-open import Cubical.Interface.DecEq
-open import Cubical.Interface.HLevels
-open import Cubical.Interface.Show
+open import Cubical.Instances.DecEq
+open import Cubical.Instances.HLevels
+open import Cubical.Instances.Show
 
 open import Teaser.Permutation using (List↭; []; _∷_; swap; trunc; List→List↭) renaming (elim-set to ↭-elim)
-
-open DecEq ⦃ ... ⦄
-open IsOfHLevel ⦃ ... ⦄
-open Show ⦃ ... ⦄
 
 private module _ where
   open import Cubical.Relation.Binary.Toset using (TosetStr)
@@ -79,7 +73,7 @@ instance
 Listₛ→List↭ : Listₛ → List↭ A
 Listₛ→List↭ = List→List↭ ∘ Listₛ→List
 
-Sorting = ⦃ da : DecEq A ⦄ (xs : List↭ A) → Σ[ res ∈ Listₛ ] (Erased ∥ xs ≡ Listₛ→List↭ res ∥₁)
+Sorting = ⦃ da : DecEq A ⦄ (xs : List↭ A) → Σ[ res ꞉ Listₛ ] (Erased ∥ xs ≡ Listₛ→List↭ res ∥₁)
 
 module _ where
   empty? : Listₛ → Bool
