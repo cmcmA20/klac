@@ -8,7 +8,7 @@ open import Data.Nat.Properties using (*-comm)
 
 open import coursework.Bits
 open import coursework.Machine
-open import Prelude
+
 
 #+end_src
 

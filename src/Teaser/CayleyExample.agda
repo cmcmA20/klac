@@ -11,7 +11,7 @@ open import Cubical.Data.Nat
 open import Cubical.Algebra.Monoid.Base
 open import Cubical.Algebra.Monoid.Instances.Nat
 
-open import Cubical.Instances.HLevels
+
 
 private variable
   ℓ : Level

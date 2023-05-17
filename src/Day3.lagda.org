@@ -1,0 +1,118 @@
+* стандартные прокашливания
+#+begin_src agda2
+
+{-# OPTIONS --safe --guardedness #-}
+module Day3 where
+
+
+open import Day2 using (Dec′)
+
+open import Data.Bool using (false; true; if_then_else_)
+  renaming (Bool to 𝔹)
+open import Data.Nat using (ℕ; zero; suc; _*_)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Structures.??? using (Dec; yes; no)
+
+#+end_src
+
+* It's Bool again
+Разрешимые типы могут быть "ухудшены" до булевых значений, достаточно просто выкинуть сами доказательства.
+Отступление: В Coq есть SSReflect, в его основе как раз лежит понятие /boolean reflection/.
+Оно позволяет нам легко переключаться между логическим представлением и вычислительным представлением какого-либо концепта.
+
+#+begin_src agda2
+
+dec′-to-dec : {A : Type ℓ} → Dec′ A → Dec A
+dec′-to-dec (inj₁ a) = yes a
+dec′-to-dec (inj₂ ¬a) = no λ x → ¬a x
+
+forget-evidence : {A : Type ℓ} → Dec A → 𝔹
+forget-evidence (yes _) = true
+forget-evidence (no _) = false
+
+from-boolean-reflection : {A : Type ℓ} (d : Dec A) → forget-evidence d ≡ true → A 
+from-boolean-reflection (yes a) _ = a
+
+to-boolean-reflection : {A : Type ℓ} (d : Dec A) → A → forget-evidence d ≡ true
+to-boolean-reflection (yes _)  _ = refl
+to-boolean-reflection (no ¬p) x with ¬p x
+... | ()
+
+#+end_src
+
+* Гибкость завтипов: разные формулировки предикатов, минутка приколов — javascript style
+Определить ~_>_~ как индуктивный предикат, показать эквивалентность.
+
+#+begin_src agda2
+
+data _>ᵢ_ : ℕ → ℕ → Type₀ where
+  sz : {n : ℕ  } →          suc n >ᵢ 0
+  ss : {m n : ℕ} → m >ᵢ n → suc m >ᵢ suc n
+
+>ᵢ-dec : (m n : ℕ) → Dec (m >ᵢ n)
+>ᵢ-dec zero n = no (λ ())
+>ᵢ-dec (suc m) zero = yes sz
+>ᵢ-dec (suc m) (suc n) with >ᵢ-dec m n
+... | yes x  = yes (ss x)
+... | no  ¬x = no (λ { (ss prf) → ¬x prf})
+
+_>ᵣ_ : ℕ → ℕ → 𝔹
+m >ᵣ n = forget-evidence (>ᵢ-dec m n)
+
+-- if (n > 0) { return (n * n); } else return false
+javascriptIsFun : (n : ℕ) → if n >ᵣ 0 then ℕ else 𝔹
+javascriptIsFun n with n >ᵣ 0
+... | true  = n * n
+... | false = false
+
+-- too lazy to fix this
+-- ⇔-preserves-Dec : {P Q : Type ℓ} → (P ⇔ Q) → (Dec P ⇔ Dec Q)
+-- proj₁ (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (p⇒q x)
+-- proj₁ (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no λ z → ¬x (q⇒p z)
+-- proj₂ (⇔-preserves-Dec (p⇒q , q⇒p)) (yes x) = yes (q⇒p x)
+-- proj₂ (⇔-preserves-Dec (p⇒q , q⇒p)) (no ¬x) = no (λ z → ¬x (p⇒q z))
+
+>ᵢ-prop : (m n : ℕ) → isProp (m >ᵢ n)
+>ᵢ-prop (suc m) zero    sz     sz     = refl
+>ᵢ-prop (suc m) (suc n) (ss x) (ss y) = cong ss (>ᵢ-prop m n x y)
+
+#+end_src
+
+* Коиндуктивные типы (~record~)
+
+#+begin_src agda2
+
+record TheBox : Type₀ where
+  coinductive
+  field
+    finished : 𝔹
+    pushTheButton : if finished then ℕ else TheBox
+
+zBox : (n : ℕ) → TheBox
+zBox n = record { finished = true ; pushTheButton = n }
+
+wBox : (n : ℕ) → TheBox
+wBox n = helper n n
+  where
+  helper : ℕ → ℕ → TheBox
+  helper zero    m = record { finished = true ; pushTheButton = m }
+  helper (suc n) m = record { finished = false ; pushTheButton = helper n m }
+
+strangeOne : TheBox
+TheBox.finished strangeOne = false
+TheBox.pushTheButton strangeOne = strangeOne
+
+record Stream (A : Type ℓ) : Type ℓ where
+  coinductive
+  constructor _∷_
+  field
+    h : A
+    t : Stream A
+open Stream public
+
+-- из потока всегда можно взять элемент, в отличие от списка
+_!_ : {A : Type ℓ} → Stream A → ℕ → A
+s ! zero  = h s
+s ! suc i = t s ! i
+
+#+end_src

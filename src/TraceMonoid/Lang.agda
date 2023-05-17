@@ -1,6 +1,6 @@
 module TraceMonoid.Lang  where
 
-open import TraceMonoid.TraceMonoid
+open import Structures.???
 
 open import Cubical.Foundations.Everything hiding (_∙_)
 open import Cubical.Data.List hiding ([_])
@@ -13,10 +13,10 @@ open import Cubical.Foundations.Prelude renaming (_∙_ to compPath)
 open import Cubical.Algebra.Monoid
 open import Cubical.Relation.Nullary
 
-open import Agda.Primitive
-open import Agda.Builtin.List
-open import Agda.Builtin.Bool
-open import Agda.Builtin.Nat
+
+open import Data.List.Base
+open import Data.Bool.Base
+open import Data.Nat.Base
 
 ----------------------------
 -- The Read-Write language -

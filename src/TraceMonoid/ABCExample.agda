@@ -1,6 +1,6 @@
 module TraceMonoid.ABCExample  where
 
-open import TraceMonoid.TraceMonoid
+open import Structures.???
 open import Cubical.Foundations.Prelude hiding ( _∙_ )
 open import Cubical.Relation.Nullary
 

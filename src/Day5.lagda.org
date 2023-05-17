@@ -1,0 +1,144 @@
+* стандартные прокашливания
+#+begin_src agda2
+
+{-# OPTIONS --guardedness #-}
+module Day5 where
+
+
+
+open import Data.Bool using (Bool; false; true; T)
+open import Data.Char.Base using (Char)
+open import Data.List using (List; []; _∷_)
+open import Data.Nat.Base using (ℕ; suc; zero; _≤ᵇ_; _≤_; z≤n; s≤s)
+open import Data.Nat.Properties using (≤ᵇ⇒≤)
+
+open import Data.String.Base using (String; _++_; toList; fromList)
+
+#+end_src
+
+* Интуиция о путях
+Вернитесь на ход [[./Day4.lagda.org][назад]], посмотрите на equational reasoning.
+
+* Automatics revisited
+Первая рудиментарная автоматика, с которой сталкиваются изучающие агду, это неявные аргументы.
+Они решаются унификатором, и повлиять на их разрешение пользователь никак не может, не считая
+явную передачу такого аргумента, which defeats their purpose.
+Про [[https://agda.readthedocs.io/en/v2.6.2.2.20221128/language/implicit-arguments.html][implicit arguments]] есть [[https://proofassistants.stackexchange.com/questions/1875/uses-of-first-class-implicit-function-types][хороший вопрос от Майка Шульмана]].
+
+В агде есть ещё [[https://agda.readthedocs.io/en/v2.6.2.2.20221128/language/instance-arguments.html][instance arguments]], это неявные аргументы, но решаются они другим алгоритмом.
+С помощью этого механизма можно эмулировать тайпклассы, как в хаскелле и создавать свои стратегии
+доказательств.
+
+#+begin_src agda2
+
+ex₁ : 2 ≤ 4
+ex₁ = s≤s (s≤s z≤n)
+
+-- ex₂ : 200 ≤ 2004
+-- ex₂ = {!!}
+
+-- this example is a courtesy of Jesper Cockx
+
+-- now imported from prelude
+-- it : {A : Type ℓ} → ⦃ x : A ⦄ → A
+-- it ⦃ x ⦄ = x
+
+instance
+  ≤-dec′ : {m n : ℕ} {p : T (m ≤ᵇ n)} → m ≤ n
+  ≤-dec′ {p = p} = ≤ᵇ⇒≤ _ _ p
+
+ex₃ : 300 ≤ 32768
+ex₃ = it
+
+#+end_src
+[[https://jesper.sikanda.be/posts/formalize-all-the-things.html][Статья Джеспера]], где это используется.
+Покажи [[./homework/Day4.lagda.org][домашнюю работу]], где этот механизм используется по-другому.
+
+
+* type safe printf, variadic functions
+С помощью завтипов можно делать функции, у которых количество аргументов заранее неизвестно.
+
+#+begin_src agda2
+
+data Fmt : Type₀ where
+  verbatim_ : String → Fmt
+  %u        :          Fmt
+  %s        :          Fmt
+  --  %d        :          Fmt
+
+FmtString = List Fmt
+
+#+end_src
+
+Давайте подумаем, какая должна быть сигнатура у функции ~sprintf~ при некоторых
+конкретных значениях форматной строки ~f~.
+
+#+begin_src pseudocode
+
+sprintf : (f : FmtString) → ？
+
+"test"                       ↦ String
+"a[%u][%u] := %d"            ↦ ℕ → ℕ → ℤ → String
+"username: %s\npassword: %s" ↦ String → String → String
+
+#+end_src
+
+#+begin_src agda2
+
+types : FmtString → List Type₀
+types []               = []
+types (verbatim _ ∷ fs) =          types fs
+types (%u         ∷ fs) = ℕ      ∷ types fs
+types (%s         ∷ fs) = String ∷ types fs 
+-- ⟦ %d         ∷ fs ⟧′ = ℤ      ∷ ⟦ fs ⟧′
+
+fold-t : List Type₀ → Type₀
+fold-t []       = String
+fold-t (t ∷ ts) = t → fold-t ts
+
+⟦_⟧ : FmtString → Type₀
+⟦ fs ⟧ = fold-t (types fs)
+
+sprintf : (acc : String) → (fs : FmtString) → ⟦ fs ⟧
+sprintf acc []                  = acc
+sprintf acc (verbatim str ∷ fs) =       sprintf (acc ++ str     ) fs
+sprintf acc (%u           ∷ fs) = λ n → sprintf (acc ++ show-ℕ n) fs
+sprintf acc (%s           ∷ fs) = λ s → sprintf (acc ++ s       ) fs
+-- sprintf acc (%d ∷ fs) = λ z → sprintf (acc ++ show-ℤ z) fs
+
+#+end_src
+
+Чтобы было совсем похоже на сишный вариант, научимся конвертировать обычные строки
+в форматные.
+
+#+begin_src agda2
+
+conv : (acc : String) → List Char → FmtString
+conv acc []               = verbatim acc ∷ []
+conv acc (c ∷ [])         = verbatim (acc ++ fromList (c ∷ [])) ∷ []
+conv acc ('%' ∷ 'u' ∷ cs) = verbatim acc ∷ %u ∷ conv "" cs
+conv acc ('%' ∷ 's' ∷ cs) = verbatim acc ∷ %s ∷ conv "" cs
+conv acc (c₁  ∷ c₂  ∷ cs) = conv (acc ++ fromList (c₁ ∷ [])) (c₂ ∷ cs)
+
+toFmtString : String → FmtString
+toFmtString str = conv "" (toList str)
+
+printf : (str : String) → ⟦ toFmtString str ⟧
+printf str = sprintf "" (toFmtString str)
+
+_ : printf "just a string"
+    ≡ "just a string"
+_ = refl
+
+_ : printf "lol, x = %u"
+    55
+    ≡ "lol, x = 55"
+_ = refl
+
+_ : printf "hello, my name is %s and I'm %u years old"
+    "Paul"
+    420
+    ≡ "hello, my name is Paul and I'm 420 years old"
+_ = refl
+
+#+end_src
