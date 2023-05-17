@@ -1,0 +1,190 @@
+* стандартные прокашливания
+#+begin_src agda2
+
+{-# OPTIONS --safe #-}
+module Day4 where
+
+
+
+open import Data.List using (List; []; _∷_; _++_; map)
+open import Data.Nat using (ℕ; zero; suc; _+_)
+
+open import Structures.??? using (¬_)
+
+#+end_src
+
+* Математическая индукция, элиминаторы
+Отличие /индукции/ от /рекурсии/.
+разобрать индукцию для натуральных, на дом индукция для 𝔹 и List A
+
+#+begin_src agda2
+
+-- nat-ind′ : {P : ℕ → Type₀} → P 0 → ((n : ℕ) → P n → P (suc n)) → (m : ℕ) → P m
+nat-ind : {P : ℕ → 𝓤₀} → P 0 → (Π[ n ∈ ℕ ] (P n → P (suc n))) → Π[ m ∈ ℕ ] P m
+nat-ind p₀ pₙ zero    = p₀
+nat-ind p₀ pₙ (suc m) = pₙ m (nat-ind p₀ pₙ m)
+
+nat-rec : {R : Type₀} → R → (R → R) → (m : ℕ) → R
+nat-rec {R} z s = nat-ind {P = λ _ → R} z (λ _ → s)
+
+cons-nat-rec-is-id : (m : ℕ) → nat-rec {ℕ} 0 suc m ≡ m
+cons-nat-rec-is-id zero = refl
+cons-nat-rec-is-id (suc m) = cong suc (cons-nat-rec-is-id m)
+
+-- foldr
+list-rec : {A R : Type ℓ} → R → (A → R → R) → (x : List A) → R
+list-rec z _   []       = z
+list-rec z _⊕_ (x ∷ xs) = x ⊕ (list-rec z _⊕_ xs)
+
+map-as-list-rec : {A B : Type ℓ} (f : A → B) → List A → List B
+map-as-list-rec f xs = list-rec [] (λ x acc → f x ∷ acc) xs
+
+same-map : {A B : Type ℓ} (f : A → B) (xs : List A) → map-as-list-rec f xs ≡ Data.List.map f xs
+same-map f [] = refl
+same-map f (x ∷ xs) = cong (f x ∷_) (same-map f xs)
+
+-- cons-list-rec-is-id : {A : Type ℓ} (xs : List A) → list-rec [] (_∷_) xs ≡ xs
+-- cons-list-rec-is-id = {!!}
+
+#+end_src
+
+* Рефакторинг доказательств, стили
+
+#+begin_src agda2
+
+suc-inj : (x y : ℕ) → suc x ≡ suc y → x ≡ y
+suc-inj a _ refl = refl
+
+suc-plus-comm : (a b : ℕ) → a + suc b ≡ suc (a + b)
+suc-plus-comm zero _ = refl
+suc-plus-comm (suc a) b = cong suc (suc-plus-comm _ _)
+
+plus-comm : (a b : ℕ) → a + b ≡ b + a
+plus-comm zero zero = refl
+plus-comm zero (suc b) = cong suc (plus-comm _ b)
+plus-comm (suc a) zero = cong suc (plus-comm a _)
+plus-comm (suc a) (suc b) = cong suc $
+  begin
+    a + suc b
+  ≡⟨ suc-plus-comm _ _ ⟩
+    suc (a + b)
+  ≡⟨ cong suc (plus-comm a _) ⟩
+    suc (b + a)
+  ≡˘⟨ suc-plus-comm _ _ ⟩
+    b + suc a
+  ∎ where open ≡-Reasoning
+
+#+end_src
+
+** Доказываем с промежуточными шагами во временных переменных
+
+#+begin_src agda2
+
+invert-beginner : (a b : ℕ) (r : a + a ≡ b + b) → a ≡ b
+invert-beginner zero zero _ = refl
+invert-beginner (suc a) (suc b) r =
+  let
+    r₂ = suc-inj _ _ r
+    r₃ = trans (plus-comm _ a) r₂
+    r₄ = trans r₃ (plus-comm b _)
+    r₅ = suc-inj _ _ r₄
+  in cong suc (invert-beginner a b r₅)
+
+#+end_src
+
+** Доказываем в стиле комбинаторов
+
+#+begin_src agda2
+
+invert-cylon : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-cylon zero zero _ = refl
+invert-cylon (suc a) (suc b) r =
+  cong suc $ invert-beginner _ _ $ suc-inj _ _ $ plus-comm _ a ∙ suc-inj _ _ r ∙ plus-comm b _
+  where
+  _∙_ = trans
+  infixr 8 _∙_
+
+#+end_src
+
+** Доказываем через equality reasoning
+
+#+begin_src agda2
+
+invert-reasoning : (a b : ℕ) → a + a ≡ b + b → a ≡ b
+invert-reasoning zero zero _ = refl
+invert-reasoning (suc a) (suc b) r = cong suc $ invert-reasoning _ _ $ suc-inj _ _ $
+  begin
+    suc (a + a)
+  ≡⟨ plus-comm _ a ⟩
+    a + suc a
+  ≡⟨ suc-inj _ _ r ⟩
+    b + suc b
+  ≡⟨ plus-comm b _ ⟩
+    suc (b + b)
+  ∎ where open ≡-Reasoning
+
+#+end_src
+
+* Регулярные выражения
+
+#+begin_src agda2
+
+data RegExp (A : Type ℓ) : Type ℓ where
+  ø    :                       RegExp A
+  ε    :                       RegExp A
+  ‵_   : A        →            RegExp A
+  _∙_ : RegExp A → RegExp A → RegExp A
+  _∣_  : RegExp A → RegExp A → RegExp A
+  _+   : RegExp A →            RegExp A
+infixr 3 _∙_
+infixr 3 _∣_
+infix  4 _+
+
+private
+  variable
+    A : Type ℓ
+    x : A
+    s s₁ s₂ : List A
+    re re₁ re₂ : RegExp A
+
+_* : RegExp A → RegExp A
+re * = ε ∣ re +
+infix 4 _*
+
+infix 1 _=~_
+data _=~_ {A : Type ℓ} : List A → RegExp A → Type ℓ where
+  MEmpty  : []     =~ ε
+  MChar   : x ∷ [] =~ ‵ x
+  MApp    : s₁ =~ re₁ →
+            s₂ =~ re₂ →
+            s₁ ++ s₂ =~ re₁ ∙ re₂
+  MUnionL : s₁ =~ re₁ →
+            s₁ =~ re₁ ∣ re₂
+  MUnionR : s₂ =~ re₂ →
+            s₂ =~ re₁ ∣ re₂
+  MPlus0  : s =~ re →
+            s =~ re +
+  MPlusS  : s₁ =~ re →
+            s₂ =~ re + →
+            s₁ ++ s₂ =~ re +
+
+ex₁ : 1 ∷ [] =~ ‵ 1
+ex₁ = MChar
+
+ex₂ : 1 ∷ 2 ∷ [] =~ ‵ 1 ∙ ‵ 2
+ex₂ = MApp MChar MChar
+
+ex₃ : ¬ (1 ∷ 2 ∷ [] =~ ‵ 1)
+ex₃ ()
+
+reList : List A → RegExp A
+reList []       = ε
+reList (x ∷ xs) = ‵ x ∙ reList xs
+
+ex₄ : 1 ∷ 2 ∷ 3 ∷ [] =~ reList (1 ∷ 2 ∷ 3 ∷ [])
+ex₄ = MApp MChar (MApp MChar (MApp MChar MEmpty))
+
+matchStar : (s =~ re) → (s =~ re *)
+matchStar x = MUnionR (MPlus0 x)
+
+#+end_src

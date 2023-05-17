@@ -1,0 +1,60 @@
+#+begin_src agda2
+
+{-# OPTIONS --guardedness #-}
+module homework.Day3 where
+
+
+open import Day3 using (Stream; _!_; _>ᵢ_)
+
+open import Data.Nat using (ℕ; zero; suc)
+open import Structures.??? using (Dec)
+
+#+end_src
+
+* Доделки по лекции
+
+#+begin_src agda2
+
+-- >ᵢ⇔> : (m n : ℕ) → (m >ᵢ n) ↔ (m > n)
+-- >ᵢ⇔> = {!!}
+
+-- >ᵢ-dec₂ : (m n : ℕ) → Dec (m >ᵢ n)
+-- >ᵢ-dec₂ m n = snd (⇔-preserves-Dec (>ᵢ⇔> m n)) (dec′-to-dec (>-dec m n))
+
+#+end_src
+
+* Задача 1 (⋆)
+Сделайте функцию, создающую константный поток, в котором на любой позиции
+один и тот же элемент. Убедитесь, что поток ведёт себя необходимым образом.
+#+begin_src agda2
+
+-- используйте copattern matching (C-c C-c RET), а не refine (C-c C-r)
+const : {A : Type ℓ} → A → Stream A
+const = {!!}
+
+every-position-has-x : {A : Type ℓ} {x : A} (n : ℕ) → (const x) ! n ≡ x
+every-position-has-x = {!!}
+
+#+end_src
+
+* Задача 2 (⋆⋆)
+Покажите разрешимость равенства на натуральных числах.
+Докажите трихотомию сравнения натуральных чисел.
+#+begin_src agda2
+
+≡-ℕ-dec : (m n : ℕ) → Dec (m ≡ n)
+≡-ℕ-dec = {!!}
+
+data Tri (m n : ℕ) : Type₀ where
+  lt : n >ᵢ m → Tri m n
+  eq : m ≡ n  → Tri m n
+  gt : m >ᵢ n → Tri m n
+
+ℕ-tri : (m n : ℕ) → Tri m n
+ℕ-tri = {!!}
+
+-- it's really a proposition
+tri-prop : (m n : ℕ) → isProp (Tri m n)
+tri-prop = {!!}
+
+#+end_src

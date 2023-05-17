@@ -1,12 +1,12 @@
 {-# OPTIONS --safe --overlapping-instances --instance-search-depth=2 #-}
 module TraceMonoid.TraceMonoidJoinList where
 
-open import Agda.Primitive
+
 open import Cubical.Data.Empty as ⊥
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
 open import Cubical.Algebra.Monoid
-open import Cubical.Instances.HLevels
+
 
 
 infixr 40 _^_

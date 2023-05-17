@@ -12,7 +12,7 @@ open import Cubical.Data.Bool
 open import Cubical.HITs.Int
 
 open import Cubical.Instances.DecEq
-open import Cubical.Instances.HLevels
+
 
 
 module _ {A : Type} {a : A} ⦃ _ : IsSet A ⦄ where

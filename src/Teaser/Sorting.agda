@@ -17,7 +17,7 @@ open import Cubical.Truncation.Propositional as ∥∥₁
 open import Cubical.Relation.Nullary
 
 open import Cubical.Instances.DecEq
-open import Cubical.Instances.HLevels
+
 open import Cubical.Instances.Show
 
 open import Teaser.Permutation using (List↭; []; _∷_; swap; trunc; List→List↭) renaming (elim-set to ↭-elim)
