@@ -109,9 +109,9 @@ module Insertion (_≤?_ : (x y : A) → Dec (x ≤ y)) where
   ... | yes x≤a = _∷_ x (_∷_ a as {p}) {x≤a ≤ᴴ∷ _}
   ... | no  x≰a = _∷_ a (insert x as) {≤ᴴinsert {p = p} x≰a}
 
-  ≤ᴴinsert                      {p = ≤ᴴ[]   } x≰y = total′ _ _ x≰y ≤ᴴ∷ _
+  ≤ᴴinsert                      {p = ≤ᴴ[]   } x≰y = total _ _ x≰y ≤ᴴ∷ _
   ≤ᴴinsert {x = x} {as = a ∷ _} {p = p ≤ᴴ∷ _} x≰y with x ≤? a
-  ... | yes _ = total′ _ _ x≰y ≤ᴴ∷ _
+  ... | yes _ = total _ _ x≰y ≤ᴴ∷ _
   ... | no  _ = p ≤ᴴ∷ _
 
   @0 insertCons : (x : A) (as : Listₛ) → Listₛ→List↭ (insert x as) ≡ x ∷ Listₛ→List↭ as
@@ -128,7 +128,7 @@ module Insertion (_≤?_ : (x y : A) → Dec (x ≤ y)) where
     insertSwap x y [] | yes x≤y | no  y≰x = cons≡ refl (cons≡ refl refl)
     insertSwap x y [] | no  x≰y with y ≤? x
     insertSwap x y [] | no  x≰y | yes y≤x = cons≡ refl (cons≡ refl refl)
-    insertSwap x y [] | no  x≰y | no  y≰x = ⊥.rec (x≰y (total′ _ _ y≰x))
+    insertSwap x y [] | no  x≰y | no  y≰x = ⊥.rec (x≰y (total _ _ y≰x))
     insertSwap x y (z ∷ u) with y ≤? z
     insertSwap x y (z ∷ u) | yes y≤z with x ≤? y
     insertSwap x y (z ∷ u) | yes y≤z | yes x≤y with x ≤? z
@@ -141,7 +141,7 @@ module Insertion (_≤?_ : (x y : A) → Dec (x ≤ y)) where
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y with x ≤? z
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | yes x≤z with y ≤? x
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | yes x≤z | yes y≤x = cons≡ refl (cons≡ refl refl)
-    insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | yes x≤z | no  y≰x = ⊥.rec (x≰y (total′ _ _ y≰x))
+    insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | yes x≤z | no  y≰x = ⊥.rec (x≰y (total _ _ y≰x))
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | no  x≰z with y ≤? z
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | no  x≰z | yes y≤z' = cons≡ refl (cons≡ refl refl)
     insertSwap x y (z ∷ u) | yes y≤z | no  x≰y | no  x≰z | no  y≰z  = ⊥.rec (y≰z y≤z)

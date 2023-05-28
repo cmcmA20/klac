@@ -3,10 +3,7 @@ module Teaser.FreeMonoid.Properties where
 
 open import Cubical.Foundations.Prelude
 
-open import Cubical.Data.Nat.HLevel
-open import Cubical.Data.List.HLevel
-
-open import Cubical.Interface.HLevels
+open import Cubical.Instances.HLevels
 
 open import Teaser.FreeMonoid.Base
 

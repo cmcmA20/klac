@@ -4,9 +4,7 @@ module Teaser.FreeMonoid.Base where
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
 
-open import Cubical.Interface.HLevels
-
-open IsOfHLevel ⦃ ... ⦄
+open import Cubical.Instances.HLevels
 
 data FreeMonoid {ℓ} (A : Type ℓ) : Type ℓ where
   ε   : FreeMonoid A
@@ -66,7 +64,7 @@ module _ (ε*   : B)
 
 module _ ⦃ A-set : IsSet A ⦄ where
   open import Cubical.Data.List.Base using (List; []; _∷_)
-  open import Cubical.Data.List.HLevel
+
 
   -- ‶normalization″ procedure
   FreeMonoid→List : FreeMonoid A → List A
@@ -92,13 +90,11 @@ module _ ⦃ A-set : IsSet A ⦄ where
   first-assoc nothing  _ _ = refl
   first-assoc (just _) _ _ = refl
 
-  open import Cubical.Data.Maybe.HLevel
-
   head : FreeMonoid A → Maybe A
-  head = rec-set nothing just first (λ _ → refl) first-unit first-assoc
+  head = ? -- rec-set nothing just first (λ _ → refl) first-unit first-assoc
 
   last : FreeMonoid A → Maybe A
-  last = rec-set nothing just (flip first) first-unit (λ _ → refl) (λ _ _ zs* → sym (first-assoc zs* _ _))
+  last = ? -- rec-set nothing just (flip first) first-unit (λ _ → refl) (λ _ _ zs* → sym (first-assoc zs* _ _))
 
 _∷_ : A → FreeMonoid A → FreeMonoid A
 x ∷ xs = [ x ] · xs

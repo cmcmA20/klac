@@ -23,10 +23,10 @@ module _ {A : Type} {a : A} ⦃ _ : IsSet A ⦄ where
   bar : A
   bar = foo
 
--- foo′ : (xs ys : List ℕ) → ⦃ IsGroupoid (xs ≡ ys) ⦄ → ℕ
--- foo′ xs ys with xs ≟ ys
--- ... | yes _ = 1
--- ... | no  _ = 0
+foo′ : (xs ys : List ℕ) → ⦃ IsGroupoid (xs ≡ ys) ⦄ → ℕ
+foo′ xs ys with xs ≟ ys
+... | yes _ = 1
+... | no  _ = 0
 
 -- baz : ℕ
 -- baz = foo′ [] []
@@ -46,10 +46,13 @@ succEquiv : ℤ ≃ ℤ
 succEquiv = isoToEquiv (iso succ pred succPred predSucc)
   where
   succPred : ∀ m → succ (pred m) ≡ m
-  succPred (neg _)       = refl
-  succPred (pos zero)    = 0₋≡0₊
-  succPred (pos (suc _)) = refl
-  succPred (0₋≡0₊ i) j = 0₋≡0₊ (i ∧ j)
+  succPred (neg x) = {!!}
+  succPred (pos x) = {!!}
+  succPred (0₋≡0₊ i) = {!!}
+  -- succPred (neg _)       = refl
+  -- succPred (pos zero)    = 0₋≡0₊
+  -- succPred (pos (suc _)) = refl
+  -- succPred (0₋≡0₊ i) j = 0₋≡0₊ (i ∧ j)
 
   predSucc : ∀ m → pred (succ m) ≡ m
   predSucc (neg zero)    = sym 0₋≡0₊
