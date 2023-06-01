@@ -59,14 +59,14 @@ Open any .agda file with your editor and try to typecheck it
 
    ```sh
    ghcup upgrade
-   ghcup install ghc 9.2.5
-   ghcup set ghc 9.2.5
-   ghcup install cabal 3.6.2.0
-   ghcup set cabal 3.6.2.0
+   ghcup install ghc 9.6.1
+   ghcup set ghc 9.6.1
+   ghcup install cabal 3.10.1.0
+   ghcup set cabal 3.10.1.0
    cabal update
    ```
 
-3. Install Agda 2.6.4 from source, it may take a while:
+3. Install Agda 2.6.4 (master) from source, it may take a while:
 
    ```sh
    git clone https://github.com/agda/agda/ ~/agda
@@ -75,12 +75,19 @@ Open any .agda file with your editor and try to typecheck it
    cabal install --overwrite-policy=always
    ```
 
+4. Install fix-whitespace:
+
+   ```sh
+   cd ~
+   cabal install fix-whitespace
+   ```
+
 4. Install libraries:
 
    mini cubical library
    ```sh
    git clone https://github.com/cmcmA20/cubical-mini ~/.agda/cubical-mini
-   echo "$HOME/.agda/cubical-mini/cubical.agda-lib" >> ~/.agda/libraries
+   echo "$HOME/.agda/cubical-mini/cubical-mini.agda-lib" >> ~/.agda/libraries
    ```
 
 5. Use emacs as your editor (commands for debian/ubuntu):
